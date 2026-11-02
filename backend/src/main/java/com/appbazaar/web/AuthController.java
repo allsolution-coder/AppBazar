@@ -1,0 +1,76 @@
+package com.appbazaar.web;
+
+import static org.springframework.http.HttpStatus.*;
+
+import com.appbazaar.model.*;
+import com.appbazaar.repo.UserRepository;
+import com.appbazaar.security.JwtService;
+import com.appbazaar.web.Dto.*;
+import jakarta.validation.Valid;
+import java.time.Instant;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+    private final UserRepository users;
+    private final PasswordEncoder encoder;
+    private final JwtService jwt;
+    private final int registrationFee;
+
+    public AuthController(UserRepository users, PasswordEncoder encoder, JwtService jwt,
+                          @Value("${app.registration-fee}") int registrationFee) {
+        this.users = users; this.encoder = encoder; this.jwt = jwt; this.registrationFee = registrationFee;
+    }
+
+    private AuthRes res(User u) {
+        boolean paid = !Boolean.FALSE.equals(u.getFeePaid());
+        return new AuthRes(jwt.generate(u, paid), u.getName(), u.getRole().name(), paid);
+    }
+
+    @PostMapping("/register")
+    public AuthRes register(@Valid @RequestBody RegisterReq r) {
+        String email = r.email().toLowerCase();
+        if (users.findByEmail(email).isPresent())
+            throw new ResponseStatusException(CONFLICT, "Email is already registered");
+        Role role = "SELLER".equalsIgnoreCase(r.role()) ? Role.SELLER : Role.BUYER; // admins are never self-registered
+        User u = new User();
+        u.setName(r.name());
+        u.setEmail(email);
+        u.setPasswordHash(encoder.encode(r.password()));
+        u.setRole(role);
+        u.setFeePaid(false); // the account stays locked until the registration fee is paid
+        users.save(u);
+        return res(u);
+    }
+
+    @PostMapping("/login")
+    public AuthRes login(@Valid @RequestBody LoginReq r) {
+        User u = users.findByEmail(r.email().toLowerCase())
+                .filter(x -> encoder.matches(r.password(), x.getPasswordHash()))
+                .orElseThrow(() -> new ResponseStatusException(UNAUTHORIZED, "Wrong email or password"));
+        return res(u);
+    }
+
+    @GetMapping("/fee-info")
+    public Map<String, Integer> feeInfo() {
+        return Map.of("amount", registrationFee);
+    }
+
+    /** Payment is simulated. Plug Stripe or PayPal in here before charging real money. */
+    @PostMapping("/pay-fee")
+    public AuthRes payFee(Authentication auth) {
+        User u = users.findByEmail(auth.getName()).orElseThrow();
+        if (!Boolean.FALSE.equals(u.getFeePaid()))
+            throw new ResponseStatusException(CONFLICT, "Registration fee is already paid");
+        u.setFeePaid(true);
+        u.setFeePaidAt(Instant.now());
+        users.save(u);
+        return res(u);
+    }
+}
