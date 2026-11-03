@@ -43,5 +43,7 @@ public final class Dto {
             return new ReviewRes(r.getId(), r.getUser().getName(), r.getRating(), r.getComment(), r.getCreatedAt());
         }
     }
+    public record ConfirmReq(@NotBlank String paymentId) {}
+    public record ConfirmRes(String kind, AuthRes auth, OrderRes order) {}
     public record Stats(long liveProducts, long pending, long orders, long revenue, long commission, long feeIncome) {}
 }

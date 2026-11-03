@@ -3,6 +3,7 @@ package com.appbazaar.web;
 import static org.springframework.http.HttpStatus.*;
 
 import com.appbazaar.model.*;
+import com.appbazaar.payment.PayPalService;
 import com.appbazaar.repo.UserRepository;
 import com.appbazaar.security.JwtService;
 import com.appbazaar.web.Dto.*;
@@ -21,11 +22,12 @@ public class AuthController {
     private final UserRepository users;
     private final PasswordEncoder encoder;
     private final JwtService jwt;
+    private final PayPalService paypal;
     private final int registrationFee;
 
-    public AuthController(UserRepository users, PasswordEncoder encoder, JwtService jwt,
+    public AuthController(UserRepository users, PasswordEncoder encoder, JwtService jwt, PayPalService paypal,
                           @Value("${app.registration-fee}") int registrationFee) {
-        this.users = users; this.encoder = encoder; this.jwt = jwt; this.registrationFee = registrationFee;
+        this.users = users; this.encoder = encoder; this.jwt = jwt; this.paypal = paypal; this.registrationFee = registrationFee;
     }
 
     private AuthRes res(User u) {
@@ -62,9 +64,11 @@ public class AuthController {
         return Map.of("amount", registrationFee);
     }
 
-    /** Payment is simulated. Plug Stripe or PayPal in here before charging real money. */
+    /** Demo payment, used only while PayPal is not configured. With PayPal on, the fee is confirmed by PaymentController. */
     @PostMapping("/pay-fee")
     public AuthRes payFee(Authentication auth) {
+        if (paypal.enabled())
+            throw new ResponseStatusException(BAD_REQUEST, "Online payments are on. Use the Pay button on the payment page.");
         User u = users.findByEmail(auth.getName()).orElseThrow();
         if (!Boolean.FALSE.equals(u.getFeePaid()))
             throw new ResponseStatusException(CONFLICT, "Registration fee is already paid");

@@ -14,6 +14,8 @@ public class Orders {
     private User buyer;
     private int total;
     private Instant createdAt = Instant.now();
+    @Column(unique = true)
+    private String paymentRef; // PayPal order id, null for demo orders
     @ManyToMany
     private List<Product> items;
 }

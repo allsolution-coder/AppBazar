@@ -11,6 +11,7 @@ import Projects from "./pages/Projects";
 import RegisterProject from "./pages/RegisterProject";
 import Login from "./pages/Login";
 import Fee from "./pages/Fee";
+import PaymentReturn, { PaymentCancel } from "./pages/PaymentReturn";
 import { Buyer, Seller, Admin } from "./pages/Dashboards";
 import { About, Contact, Privacy, Terms, NotFound } from "./pages/Static";
 
@@ -61,6 +62,8 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/browse" element={<Browse />} />
           <Route path="/product/:id" element={<Product />} />
+          <Route path="/payment/success" element={<PaymentReturn />} />
+          <Route path="/payment/cancel" element={<PaymentCancel />} />
           <Route path="/fee" element={<Fee />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/register" element={<RegisterProject />} />

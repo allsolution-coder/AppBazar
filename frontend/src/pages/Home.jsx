@@ -49,7 +49,7 @@ export default function Home() {
         <h2>Why people trust it</h2>
         <div className="cols">
           <div className="box"><h3>Every listing approved</h3><p>Admins review each product before it goes live.</p></div>
-          <div className="box"><h3>Secure checkout</h3><p>Pay securely with Stripe or PayPal. Card details never touch our servers.</p></div>
+          <div className="box"><h3>Secure checkout</h3><p>Pay securely with PayPal. Your payment details never touch our servers.</p></div>
           <div className="box"><h3>Talk to the seller</h3><p>Ask questions before you buy, and leave a review after.</p></div>
         </div>
       </section>

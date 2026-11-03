@@ -85,9 +85,22 @@ Set these as environment variables.
 | `JWT_SECRET` | a placeholder | **Set a long random value in any real deployment** |
 | `ADMIN_PASSWORD` | `Admin@12345` | Password for the seeded accounts. Change it before the first start |
 | `SEED_DEMO_DATA` | `true` | Set to `false` to skip the demo sellers and products (the admin account is still created) |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET` | empty | PayPal app credentials. Empty means demo payments |
+| `PAYPAL_BASE` | PayPal sandbox | Set to `https://api-m.paypal.com` for live payments |
+| `FRONTEND_URL` | `http://localhost:5173` | Where PayPal sends the buyer back |
 | `REGISTRATION_FEE` | `5` | Registration fee in whole US dollars |
 | `CORS_ORIGIN` | `http://localhost:5173` | Allowed frontend origin |
 | `UPLOAD_DIR` | `./uploads` | Where uploaded product files are stored |
+
+## Online payments with PayPal
+
+By default payments are simulated. To take real online payments, use PayPal (the sandbox is free and works from India):
+
+1. Go to developer.paypal.com, log in with a PayPal account, open **Apps & Credentials**, switch to **Sandbox**, and create an app. Copy its **Client ID** and **Secret**.
+2. Start the backend with `PAYPAL_CLIENT_ID` and `PAYPAL_SECRET` set. `start-backend.ps1` asks for them.
+3. The $5 registration fee and cart checkout now open the PayPal payment page. Pay with a **sandbox personal account** (Developer dashboard, Testing tools, Sandbox accounts).
+
+The server only counts a payment after asking PayPal that the order is completed, for the right amount and the right account, and it rebuilds the amount from its own product prices. PayPal sends the buyer back to `FRONTEND_URL` (default `http://localhost:5173`). For live payments set `PAYPAL_BASE=https://api-m.paypal.com` with live credentials, and add PayPal webhooks so orders are created even if the buyer closes the tab.
 
 ## API
 
@@ -101,7 +114,9 @@ Set these as environment variables.
 | GET, POST | `/api/products/{id}/reviews` | read: public. Write: buyer who paid |
 | GET | `/api/auth/fee-info` | public |
 | POST | `/api/auth/pay-fee` | newly registered account that has not paid yet |
-| POST | `/api/orders` | logged in |
+| GET | `/api/payments/config` | public |
+| POST | `/api/payments/fee-session`, `/api/payments/order-session`, `/api/payments/confirm` | logged in (PayPal on) |
+| POST | `/api/orders` | logged in (demo checkout, off when PayPal is on) |
 | GET | `/api/orders/mine` | logged in |
 | GET | `/api/files/{productId}` | buyer who paid, the seller, or admin |
 | GET | `/api/admin/stats`, `/api/admin/pending` | admin |
@@ -118,7 +133,7 @@ docs/       Screenshots used in this README
 
 ## Roadmap
 
-- Real payments with Stripe or PayPal (checkout is simulated in `OrderController`)
+- PayPal webhooks for production, and Razorpay for payments in rupees
 - Prices in cents, to support amounts like $9.99
 - Email notifications for orders and approvals
 - Automated tests for the API and the main user flows

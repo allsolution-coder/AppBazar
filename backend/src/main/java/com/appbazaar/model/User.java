@@ -18,4 +18,5 @@ public class User {
     private Role role;
     private Boolean feePaid;      // null means an account created before the fee existed (treated as paid)
     private Instant feePaidAt;
+    private String feePaymentRef;
 }
