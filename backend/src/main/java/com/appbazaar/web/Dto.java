@@ -11,6 +11,8 @@ public final class Dto {
     public record RegisterReq(@NotBlank String name, @Email @NotBlank String email,
                               @Size(min = 8, message = "Password must be at least 8 characters") String password,
                               String role) {}
+    public record CodeReq(@Email @NotBlank String email) {}
+    public record VerifyReq(@Email @NotBlank String email, @NotBlank @Size(min = 6, max = 6) String code, String role) {}
     public record LoginReq(@NotBlank String email, @NotBlank String password) {}
     public record AuthRes(String token, String name, String role, boolean feePaid) {}
 

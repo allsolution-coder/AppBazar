@@ -35,22 +35,6 @@ public class AuthController {
         return new AuthRes(jwt.generate(u, paid), u.getName(), u.getRole().name(), paid);
     }
 
-    @PostMapping("/register")
-    public AuthRes register(@Valid @RequestBody RegisterReq r) {
-        String email = r.email().toLowerCase();
-        if (users.findByEmail(email).isPresent())
-            throw new ResponseStatusException(CONFLICT, "Email is already registered");
-        Role role = "SELLER".equalsIgnoreCase(r.role()) ? Role.SELLER : Role.BUYER; // admins are never self-registered
-        User u = new User();
-        u.setName(r.name());
-        u.setEmail(email);
-        u.setPasswordHash(encoder.encode(r.password()));
-        u.setRole(role);
-        u.setFeePaid(false); // the account stays locked until the registration fee is paid
-        users.save(u);
-        return res(u);
-    }
-
     @PostMapping("/login")
     public AuthRes login(@Valid @RequestBody LoginReq r) {
         User u = users.findByEmail(r.email().toLowerCase())

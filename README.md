@@ -9,7 +9,8 @@ Built with **Spring Boot 3 (Java 21)**, **PostgreSQL** and **React (Vite)**.
 ## Features
 
 - **Registration fee.** Every new buyer and seller pays a one-time $5 fee (simulated for now) before the account is active. The admin panel shows the fee income.
-- **Three roles.** Buyer, seller and admin, with JWT login (passwords hashed with BCrypt) and role-based access on every endpoint.
+- **Email-only login.** No password and no sign-up form: enter your email, type the 6-digit code sent to it, and you are in (a new email creates a new account). Codes are stored hashed, expire in 10 minutes, and allow 5 tries. The admin signs in with a password.
+- **Three roles.** Buyer, seller and admin, with JWT login and role-based access on every endpoint.
 - **Seller uploads.** A seller lists a product together with the file buyers will receive (zip, rar, 7z, tar, gz, pdf, apk, jar, txt, md, up to 50 MB).
 - **Admin approval.** New listings wait in an approval queue. The admin can download the file to review it, then approve or reject. Only approved products are public.
 - **Cart and checkout.** Prices are always read from the database, never from the browser. Payment is simulated for now.
@@ -73,7 +74,7 @@ Created on first start, with sample listings.
 | Admin | admin@appbazaar.com | Admin@12345 |
 | Seller | kavya@appbazaar.com | Admin@12345 |
 
-Anyone can also register as a buyer or seller. Admin accounts cannot be self-registered.
+Buyers and sellers sign in with just their email. On the Log in page, use "Admin or password login" for the accounts above. Admin accounts cannot be created from the website.
 
 ### Configuration
 
@@ -89,6 +90,8 @@ Set these as environment variables.
 | `PAYPAL_BASE` | PayPal sandbox | Set to `https://api-m.paypal.com` for live payments |
 | `FRONTEND_URL` | `http://localhost:5173` | Where PayPal sends the buyer back |
 | `REGISTRATION_FEE` | `5` | Registration fee in whole US dollars |
+| `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | empty | SMTP server that sends login codes. Empty means the code is printed in the backend console (development only) |
+| `MAIL_FROM` | `no-reply@appbazaar.local` | Sender address (use your Gmail address with Gmail) |
 | `CORS_ORIGIN` | `http://localhost:5173` | Allowed frontend origin |
 | `UPLOAD_DIR` | `./uploads` | Where uploaded product files are stored |
 
@@ -106,7 +109,8 @@ The server only counts a payment after asking PayPal that the order is completed
 
 | Method | Path | Who |
 |---|---|---|
-| POST | `/api/auth/register`, `/api/auth/login` | public |
+| POST | `/api/auth/request-code`, `/api/auth/verify-code` | public (email login) |
+| POST | `/api/auth/login` | public (admin and demo accounts, password) |
 | GET | `/api/products?q=&category=` | public (live products only) |
 | GET | `/api/products/{id}` | public |
 | POST | `/api/products` (multipart: name, category, price, description, file) | seller |
@@ -135,7 +139,7 @@ docs/       Screenshots used in this README
 
 - PayPal webhooks for production, and Razorpay for payments in rupees
 - Prices in cents, to support amounts like $9.99
-- Email notifications for orders and approvals
+- Email notifications for orders and approvals (the mail setup for login codes is already in place)
 - Automated tests for the API and the main user flows
 - Deployment guide (Docker image for the API, static hosting for the frontend)
 
