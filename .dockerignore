@@ -1,0 +1,8 @@
+.git/
+frontend/
+docs/
+backend/target/
+backend/uploads/
+*.md
+*.ps1
+.idea/

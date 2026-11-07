@@ -6,11 +6,11 @@ import { useToast } from "../ui";
 
 const HOME = { BUYER: "/buyer", SELLER: "/seller", ADMIN: "/admin" };
 
-export default function Login() {
+export default function Login({ initialMode = "email" }) {
   const { auth, login } = useAuth();
   const nav = useNavigate();
   const toast = useToast();
-  const [mode, setMode] = useState("email"); // email, code or password
+  const [mode, setMode] = useState(initialMode); // email, code or password
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("BUYER");
   const [code, setCode] = useState("");
@@ -98,8 +98,12 @@ export default function Login() {
         <span className="tag">This choice is used only the first time, for a new account.</span>
         {error && <span className="err">{error}</span>}
         <button disabled={busy}>{busy ? "Sending…" : "Send me a code"}</button>
-        <button type="button" className="ghost" onClick={() => { setMode("password"); setError(""); }}>Admin or password login</button>
       </form>
     </section>
   );
+}
+
+// Hidden page for the admin and demo seller accounts (password login). Not linked from the site.
+export function StaffLogin() {
+  return <Login initialMode="password" />;
 }

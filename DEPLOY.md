@@ -56,7 +56,7 @@ Free plans change, so check each pricing page before you start. Render's free ba
 4. Deploy. Copy the site address, put it into `CORS_ORIGIN` and `FRONTEND_URL` on the backend, and redeploy the backend.
 
 ## 6. Check it
-Open the site, enter an email, and you should get a login code by email. Log in as admin with `admin@appbazaar.com` and your `ADMIN_PASSWORD` (Admin or password login).
+Open the site, enter an email, and you should get a login code by email. Log in as admin with `admin@appbazaar.com` and your `ADMIN_PASSWORD` on the hidden `/staff` page (for example `https://YOUR-SITE.onrender.com/staff`).
 
 ## Notes
 - Anyone who gets your `JWT_SECRET`, database password, or Brevo/Supabase/PayPal secrets can act as your site. Keep them only in Render's environment settings, never in the repo.

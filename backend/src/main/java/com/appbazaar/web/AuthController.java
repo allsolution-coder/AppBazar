@@ -6,6 +6,7 @@ import com.appbazaar.model.*;
 import com.appbazaar.payment.PayPalService;
 import com.appbazaar.repo.UserRepository;
 import com.appbazaar.security.JwtService;
+import com.appbazaar.security.LoginLimiter;
 import com.appbazaar.web.Dto.*;
 import jakarta.validation.Valid;
 import java.time.Instant;
@@ -23,11 +24,12 @@ public class AuthController {
     private final PasswordEncoder encoder;
     private final JwtService jwt;
     private final PayPalService paypal;
+    private final LoginLimiter limiter;
     private final int registrationFee;
 
-    public AuthController(UserRepository users, PasswordEncoder encoder, JwtService jwt, PayPalService paypal,
+    public AuthController(UserRepository users, PasswordEncoder encoder, JwtService jwt, PayPalService paypal, LoginLimiter limiter,
                           @Value("${app.registration-fee}") int registrationFee) {
-        this.users = users; this.encoder = encoder; this.jwt = jwt; this.paypal = paypal; this.registrationFee = registrationFee;
+        this.users = users; this.encoder = encoder; this.jwt = jwt; this.paypal = paypal; this.limiter = limiter; this.registrationFee = registrationFee;
     }
 
     private AuthRes res(User u) {
@@ -37,9 +39,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthRes login(@Valid @RequestBody LoginReq r) {
-        User u = users.findByEmail(r.email().toLowerCase())
+        String email = r.email().toLowerCase();
+        if (limiter.blocked(email))
+            throw new ResponseStatusException(TOO_MANY_REQUESTS, "Too many wrong tries. Try again in 15 minutes");
+        User u = users.findByEmail(email)
                 .filter(x -> encoder.matches(r.password(), x.getPasswordHash()))
-                .orElseThrow(() -> new ResponseStatusException(UNAUTHORIZED, "Wrong email or password"));
+                .orElse(null);
+        if (u == null) {
+            limiter.fail(email);
+            throw new ResponseStatusException(UNAUTHORIZED, "Wrong email or password");
+        }
+        limiter.clear(email);
         return res(u);
     }
 

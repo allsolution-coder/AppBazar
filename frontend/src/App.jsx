@@ -9,7 +9,7 @@ import Product from "./pages/Product";
 import Cart from "./pages/Cart";
 import Projects from "./pages/Projects";
 import RegisterProject from "./pages/RegisterProject";
-import Login from "./pages/Login";
+import Login, { StaffLogin } from "./pages/Login";
 import Fee from "./pages/Fee";
 import PaymentReturn, { PaymentCancel } from "./pages/PaymentReturn";
 import { Buyer, Seller, Admin } from "./pages/Dashboards";
@@ -69,6 +69,7 @@ export default function App() {
           <Route path="/projects/register" element={<RegisterProject />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/staff" element={<StaffLogin />} />
           <Route path="/buyer" element={<RequireRole roles={["BUYER", "SELLER", "ADMIN"]}><Buyer /></RequireRole>} />
           <Route path="/seller" element={<RequireRole roles={["SELLER"]}><Seller /></RequireRole>} />
           <Route path="/admin" element={<RequireRole roles={["ADMIN"]}><Admin /></RequireRole>} />

@@ -74,7 +74,7 @@ Created on first start, with sample listings.
 | Admin | admin@appbazaar.com | Admin@12345 |
 | Seller | kavya@appbazaar.com | Admin@12345 |
 
-Buyers and sellers sign in with just their email. On the Log in page, use "Admin or password login" for the accounts above. Admin accounts cannot be created from the website.
+Buyers and sellers sign in with just their email. The admin and demo sellers sign in with a password on the hidden `/staff` page. Admin accounts cannot be created from the website.
 
 ### Configuration
 
