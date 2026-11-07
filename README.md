@@ -93,7 +93,9 @@ Set these as environment variables.
 | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | empty | SMTP server that sends login codes. Empty means the code is printed in the backend console (development only) |
 | `MAIL_FROM` | `no-reply@appbazaar.local` | Sender address (use your Gmail address with Gmail) |
 | `CORS_ORIGIN` | `http://localhost:5173` | Allowed frontend origin |
-| `UPLOAD_DIR` | `./uploads` | Where uploaded product files are stored |
+| `UPLOAD_DIR` | `./uploads` | Folder for uploaded files when no cloud storage is set |
+| `S3_BUCKET`, `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | empty | S3-compatible cloud storage for product files (needed on free hosting) |
+| `BREVO_API_KEY` | empty | Sends login emails over HTTPS (needed on hosts that block SMTP) |
 
 ## Online payments with PayPal
 
@@ -135,13 +137,16 @@ frontend/   React app (pages, auth and cart context, API helper)
 docs/       Screenshots used in this README
 ```
 
+## Deploy for free
+
+See [DEPLOY.md](DEPLOY.md): Render (backend and frontend), Neon (database), Supabase Storage (product files) and Brevo (login emails).
+
 ## Roadmap
 
 - PayPal webhooks for production, and Razorpay for payments in rupees
 - Prices in cents, to support amounts like $9.99
 - Email notifications for orders and approvals (the mail setup for login codes is already in place)
 - Automated tests for the API and the main user flows
-- Deployment guide (Docker image for the API, static hosting for the frontend)
 
 ## Author
 

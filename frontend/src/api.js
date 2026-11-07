@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
 const KEY = "ab-auth";
+// empty locally (Vite proxies /api); the backend address when the site is deployed
+const API = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 export const getAuth = () => {
   try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; }
@@ -9,7 +11,7 @@ export const setAuth = (a) => (a ? localStorage.setItem(KEY, JSON.stringify(a)) 
 
 export async function api(path, { method = "GET", body } = {}) {
   const a = getAuth();
-  const res = await fetch("/api" + path, {
+  const res = await fetch(API + "/api" + path, {
     method,
     headers: { ...(body instanceof FormData ? {} : { "Content-Type": "application/json" }), ...(a ? { Authorization: "Bearer " + a.token } : {}) },
     body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
@@ -26,7 +28,7 @@ export async function api(path, { method = "GET", body } = {}) {
 
 export async function downloadFile(productId, name) {
   const a = getAuth();
-  const res = await fetch(`/api/files/${productId}`, { headers: a ? { Authorization: "Bearer " + a.token } : {} });
+  const res = await fetch(`${API}/api/files/${productId}`, { headers: a ? { Authorization: "Bearer " + a.token } : {} });
   if (!res.ok) {
     let msg = "Download failed";
     try { const j = await res.json(); msg = j.message || msg; } catch { /* no json body */ }

@@ -3,6 +3,9 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/appbazaar}
     username: ${DB_USER:postgres}
     password: ${DB_PASS:postgres}
+    hikari:
+      maximum-pool-size: ${DB_POOL:5}
+      max-lifetime: 240000   # recycle connections before a sleeping free database drops them
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,7 +22,7 @@ spring:
       max-file-size: 50MB
       max-request-size: 52MB
 server:
-  port: 8080
+  port: ${PORT:8080}
   error:
     include-message: always
 app:
@@ -35,4 +38,10 @@ app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
   seed-demo-data: ${SEED_DEMO_DATA:true}
   upload-dir: ${UPLOAD_DIR:./uploads}
+  s3-bucket: ${S3_BUCKET:}
+  s3-endpoint: ${S3_ENDPOINT:}
+  s3-region: ${S3_REGION:us-east-1}
+  s3-access-key: ${S3_ACCESS_KEY:}
+  s3-secret-key: ${S3_SECRET_KEY:}
+  brevo-api-key: ${BREVO_API_KEY:}
   allowed-extensions: zip,rar,7z,tar,gz,pdf,apk,jar,txt,md
