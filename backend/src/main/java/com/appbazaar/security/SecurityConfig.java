@@ -1,5 +1,6 @@
 package com.appbazaar.security;
 
+import jakarta.servlet.DispatcherType;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
@@ -23,6 +24,8 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> res.sendError(401, "Please log in")))
             .authorizeHttpRequests(a -> a
+                // without this, every error (even a clear message) is hidden behind a plain 401 for logged-out visitors
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/pay-fee").hasRole("UNPAID")
                 .requestMatchers("/api/payments/config").permitAll()
                 .requestMatchers("/api/payments/fee-session", "/api/payments/confirm").hasAnyRole("UNPAID", "BUYER", "SELLER", "ADMIN")
