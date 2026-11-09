@@ -78,6 +78,9 @@ public class PaymentController {
         List<Product> items = products.findAllById(ids);
         if (items.size() != ids.size() || items.stream().anyMatch(p -> p.getStatus() != Status.LIVE))
             throw new ResponseStatusException(BAD_REQUEST, "Some products are no longer available");
+        // with real money, never sell a listing that has no file to deliver (sample listings have none)
+        if (items.stream().anyMatch(p -> p.getStoredFileName() == null))
+            throw new ResponseStatusException(BAD_REQUEST, "Some products in your cart have no file yet and cannot be bought");
         List<Item> lines = items.stream().map(p -> new Item(p.getName(), p.getPrice() * 100L)).toList(); // price from the database
         String idList = String.join(",", ids.stream().map(String::valueOf).toList());
         String url = paypal.createOrder(lines, "order|" + auth.getName() + "|" + idList);
