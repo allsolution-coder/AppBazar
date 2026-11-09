@@ -9,7 +9,7 @@ Built with **Spring Boot 3 (Java 21)**, **PostgreSQL** and **React (Vite)**.
 ## Features
 
 - **Registration fee.** Every new buyer and seller pays a one-time $5 fee (simulated for now) before the account is active. The admin panel shows the fee income.
-- **Email-only login.** No password and no sign-up form: enter your email, type the 6-digit code sent to it, and you are in (a new email creates a new account). Codes are stored hashed, expire in 10 minutes, and allow 5 tries. The admin signs in with a password.
+- **Email and password login.** Sign up with an email and a password, then confirm the email once with a 6-digit code (it also lets you reset a forgotten password). Codes are stored hashed, expire in 10 minutes, and allow 5 tries. Passwords are hashed with BCrypt and wrong passwords are rate limited.
 - **Three roles.** Buyer, seller and admin, with JWT login and role-based access on every endpoint.
 - **Seller uploads.** A seller lists a product together with the file buyers will receive (zip, rar, 7z, tar, gz, pdf, apk, jar, txt, md, up to 50 MB).
 - **Admin approval.** New listings wait in an approval queue. The admin can download the file to review it, then approve or reject. Only approved products are public.
@@ -74,7 +74,7 @@ Created on first start, with sample listings.
 | Admin | admin@appbazaar.com | Admin@12345 |
 | Seller | kavya@appbazaar.com | Admin@12345 |
 
-Buyers and sellers sign in with just their email. The admin and demo sellers sign in with a password on the hidden `/staff` page. Admin accounts cannot be created from the website.
+Everyone logs in with email and password. New buyers and sellers sign up on the Log in page ("Create an account"). Admin accounts cannot be created from the website.
 
 ### Configuration
 
@@ -111,8 +111,9 @@ The server only counts a payment after asking PayPal that the order is completed
 
 | Method | Path | Who |
 |---|---|---|
-| POST | `/api/auth/request-code`, `/api/auth/verify-code` | public (email login) |
-| POST | `/api/auth/login` | public (admin and demo accounts, password) |
+| POST | `/api/auth/signup`, `/api/auth/signup/verify` | public (sign-up with email code) |
+| POST | `/api/auth/login` | public (email and password) |
+| POST | `/api/auth/forgot`, `/api/auth/reset` | public (password reset with email code) |
 | GET | `/api/products?q=&category=` | public (live products only) |
 | GET | `/api/products/{id}` | public |
 | POST | `/api/products` (multipart: name, category, price, description, file) | seller |

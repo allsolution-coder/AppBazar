@@ -16,4 +16,7 @@ public class LoginCode {
     private Instant createdAt;
     private Instant expiresAt;
     private int attempts;
+    private String purpose;             // signup or reset
+    private String pendingPasswordHash; // password chosen at sign-up, saved only after the email is verified
+    private String pendingRole;
 }

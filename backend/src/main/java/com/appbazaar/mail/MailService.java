@@ -45,8 +45,8 @@ public class MailService {
     public boolean configured() { return !brevoKey.isBlank() || smtp != null; }
 
     public void sendLoginCode(String to, String code) {
-        String subject = "Your AppBazaar login code";
-        String text = "Your AppBazaar login code is " + code + ".\n\nIt expires in 10 minutes. "
+        String subject = "Your AppBazaar verification code";
+        String text = "Your AppBazaar verification code is " + code + ".\n\nIt expires in 10 minutes. "
                 + "If you did not ask for it, you can ignore this email.";
         if (!brevoKey.isBlank()) {
             sendWithBrevo(to, subject, text);
@@ -63,7 +63,7 @@ public class MailService {
                 throw new ResponseStatusException(BAD_GATEWAY, "Could not send the email. Please try again later.");
             }
         } else {
-            log.warn("MAIL NOT CONFIGURED (development mode). Login code for {} is {}", to, code);
+            log.warn("MAIL NOT CONFIGURED (development mode). Verification code for {} is {}", to, code);
         }
     }
 
