@@ -51,7 +51,7 @@ export default function App() {
             </div>
             <div className="acts">
               <Link to="/cart" id="cartlink">Cart ({items.length})</Link>
-              {auth ? <button className="ghost" onClick={() => { logout(); nav("/"); }}>Log out</button> : <Link to="/login">Log in</Link>}
+              {auth ? <button className="ghost" onClick={() => { logout(); nav("/"); }}>Log out</button> : <Link to="/login">Sign up / Log in</Link>}
               <button className="ghost" onClick={theme} aria-label="Switch light and dark theme">Theme</button>
             </div>
           </nav>
