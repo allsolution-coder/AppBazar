@@ -19,7 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class ProductController {
     private static final Set<String> CATEGORIES =
             Set.of("Software", "Apps", "Website templates", "AI tools", "Services",
-                    "College projects", "Mini projects");
+                    "College projects", "Mini projects", "Game source code", "Games");
 
     private final ProductRepository products;
     private final UserRepository users;
@@ -58,7 +58,7 @@ public class ProductController {
             throw new ResponseStatusException(BAD_REQUEST, "Name and description are required");
         if (price < 1) throw new ResponseStatusException(BAD_REQUEST, "Price must be at least 1");
         if (!CATEGORIES.contains(category)) throw new ResponseStatusException(BAD_REQUEST, "Unknown category");
-        boolean project = category.endsWith(" projects");
+        boolean project = category.endsWith(" projects") || category.startsWith("Game"); // these need a tech stack
         if (project && (techStack == null || techStack.isBlank()))
             throw new ResponseStatusException(BAD_REQUEST, "Please add the tech stack of your project");
         if ((techStack != null && techStack.length() > 200) || (college != null && college.length() > 200))

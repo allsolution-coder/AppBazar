@@ -17,6 +17,7 @@ Built with **Spring Boot 3 (Java 21)**, **PostgreSQL** and **React (Vite)**.
 - **Protected downloads.** Only a buyer who paid, the product's seller, or an admin can download a file. Files are stored under random names.
 - **Real reviews.** Only buyers of a product can review it. A product's rating is the average of its real reviews.
 - **Student projects group.** College and mini projects live together on a Projects page, with a separate Register your project form (tech stack, college, price and file).
+- **Games.** Game source code and playable game builds have their own Games page and a Sell your game form. Selling game accounts, keys, in-game items or pirated games is not allowed.
 - **Search and filters**, light and dark theme, and a responsive layout.
 
 | Seller upload | Admin approval | Buyer downloads |

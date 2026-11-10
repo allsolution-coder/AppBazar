@@ -4,7 +4,7 @@ import { CATS } from "../constants";
 import { Loading, fmtSize, usd, useToast } from "../ui";
 
 const MAX_MB = 50;
-const ACCEPT = ".zip,.rar,.7z,.tar,.gz,.pdf,.apk,.jar,.txt,.md";
+const ACCEPT = ".zip,.rar,.7z,.tar,.gz,.pdf,.apk,.jar,.txt,.md,.unitypackage";
 
 export function Buyer() {
   const { data, error } = useApi("/orders/mine");
@@ -74,7 +74,7 @@ export function Seller() {
             <label>Price ($)<input name="price" type="number" min="1" required /></label>
             <label>Description<textarea name="description" rows="3" required /></label>
             <label>Product file<input name="file" type="file" accept={ACCEPT} required /></label>
-            <span className="tag">Allowed: zip, rar, 7z, tar, gz, pdf, apk, jar, txt, md. Max {MAX_MB} MB. Zip your project first.</span>
+            <span className="tag">Allowed: zip, rar, 7z, tar, gz, pdf, apk, jar, txt, md, unitypackage. Max {MAX_MB} MB. Zip your project first.</span>
             {err && <span className="err">{err}</span>}
             <button disabled={busy}>{busy ? "Uploading…" : "Submit for approval"}</button>
           </form>

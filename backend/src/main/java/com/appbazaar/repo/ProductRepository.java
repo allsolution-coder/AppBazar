@@ -15,7 +15,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         select p from Product p
         where p.status = com.appbazaar.model.Status.LIVE
           and (:cat = 'All' or p.category = :cat
-               or (:cat = 'Projects' and p.category in ('College projects', 'Mini projects')))
+               or (:cat = 'Projects' and p.category in ('College projects', 'Mini projects'))
+               or (:cat = 'AllGames' and p.category in ('Game source code', 'Games')))
           and (lower(p.name) like lower(concat('%', :q, '%'))
             or lower(p.description) like lower(concat('%', :q, '%')))
         order by p.id desc

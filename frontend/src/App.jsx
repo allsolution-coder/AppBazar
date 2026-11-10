@@ -8,6 +8,7 @@ import Browse from "./pages/Browse";
 import Product from "./pages/Product";
 import Cart from "./pages/Cart";
 import Projects from "./pages/Projects";
+import Games from "./pages/Games";
 import RegisterProject from "./pages/RegisterProject";
 import Login, { StaffLogin } from "./pages/Login";
 import Fee from "./pages/Fee";
@@ -43,6 +44,7 @@ export default function App() {
             <div className="links">
               <NavLink to="/browse">Browse</NavLink>
               <NavLink to="/projects">Projects</NavLink>
+              <NavLink to="/games">Games</NavLink>
               <NavLink to="/about">About</NavLink>
               <NavLink to="/contact">Contact</NavLink>
               {auth && (auth.feePaid === false
@@ -67,6 +69,8 @@ export default function App() {
           <Route path="/fee" element={<Fee />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/register" element={<RegisterProject />} />
+          <Route path="/games" element={<Games />} />
+          <Route path="/games/sell" element={<RegisterProject kind="game" />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login />} />
           <Route path="/staff" element={<StaffLogin />} />

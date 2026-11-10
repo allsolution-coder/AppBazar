@@ -7,6 +7,7 @@ export default function Home() {
   const { data, error } = useApi("/products");
   if (!data) return <Loading error={error} />;
   const ks = Object.keys(COL);
+  const games = data.filter((p) => p.category === "Game source code" || p.category === "Games");
   const top = [...data].sort((a, b) => b.rating - a.rating)[0];
   const ticker = ks.concat(ks).map((k, i) => <span key={i}>{k}<i>✦</i></span>);
   return (
@@ -40,6 +41,15 @@ export default function Home() {
           {[...data.filter((p) => p.category === "College projects").slice(0, 4), ...data.filter((p) => p.category === "Mini projects").slice(0, 4)].map((p) => <ProductCard key={p.id} p={p} />)}
         </div>
         <p><Link className="btn" to="/projects">See all projects</Link> <Link className="btn ghost" to="/projects/register">Register your project</Link></p>
+      </section>
+      <section>
+        <h2>Games</h2>
+        {games.length ? (
+          <div className="grid">{games.slice(0, 4).map((p) => <ProductCard key={p.id} p={p} />)}</div>
+        ) : (
+          <div className="box"><p>No games yet. Be the first to sell a game or its source code.</p></div>
+        )}
+        <p><Link className="btn" to="/games">See all games</Link> <Link className="btn ghost" to="/games/sell">Sell your game</Link></p>
       </section>
       <section>
         <h2>Popular right now</h2>
