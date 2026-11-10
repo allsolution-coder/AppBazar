@@ -18,6 +18,7 @@ Built with **Spring Boot 3 (Java 21)**, **PostgreSQL** and **React (Vite)**.
 - **Real reviews.** Only buyers of a product can review it. A product's rating is the average of its real reviews.
 - **Student projects group.** College and mini projects live together on a Projects page, with a separate Register your project form (tech stack, college, price and file).
 - **Games.** Game source code and playable game builds have their own Games page and a Sell your game form. Selling game accounts, keys, in-game items or pirated games is not allowed.
+- **Account page.** Every user can see their account details, change their display name and change their password.
 - **Search and filters**, light and dark theme, and a responsive layout.
 
 | Seller upload | Admin approval | Buyer downloads |
@@ -126,6 +127,8 @@ The server only counts a payment after asking PayPal that the order is completed
 | POST | `/api/payments/fee-session`, `/api/payments/order-session`, `/api/payments/confirm` | logged in (PayPal on) |
 | POST | `/api/orders` | logged in (demo checkout, off when PayPal is on) |
 | GET | `/api/orders/mine` | logged in |
+| GET, PUT | `/api/account/me` | logged in (details, display name) |
+| POST | `/api/account/password` | logged in (change password) |
 | GET | `/api/files/{productId}` | buyer who paid, the seller, or admin |
 | GET | `/api/admin/stats`, `/api/admin/pending` | admin |
 | POST | `/api/admin/products/{id}/approve` | admin |

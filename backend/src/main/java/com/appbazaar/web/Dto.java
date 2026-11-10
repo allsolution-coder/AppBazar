@@ -52,5 +52,10 @@ public final class Dto {
     }
     public record ConfirmReq(@NotBlank String paymentId) {}
     public record ConfirmRes(String kind, AuthRes auth, OrderRes order) {}
+    public record AccountRes(String name, String email, String role, boolean feePaid, Instant feePaidAt,
+                             long orders, long listings) {}
+    public record NameReq(@NotBlank @Size(max = 60) String name) {}
+    public record PasswordReq(@NotBlank String currentPassword,
+                              @Size(min = 8, max = 72, message = "New password must be 8 to 72 characters") String newPassword) {}
     public record Stats(long liveProducts, long pending, long orders, long revenue, long commission, long feeIncome) {}
 }

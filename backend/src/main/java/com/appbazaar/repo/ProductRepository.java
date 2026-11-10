@@ -10,6 +10,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findBySellerOrderByIdDesc(User seller);
     long countByStatus(Status status);
     long countByCategory(String category);
+    long countBySeller(User seller);
 
     @Query("""
         select p from Product p

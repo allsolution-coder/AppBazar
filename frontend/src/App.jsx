@@ -12,6 +12,7 @@ import Games from "./pages/Games";
 import RegisterProject from "./pages/RegisterProject";
 import Login, { StaffLogin } from "./pages/Login";
 import Fee from "./pages/Fee";
+import Account from "./pages/Account";
 import PaymentReturn, { PaymentCancel } from "./pages/PaymentReturn";
 import { Buyer, Seller, Admin } from "./pages/Dashboards";
 import { About, Contact, Privacy, Terms, NotFound } from "./pages/Static";
@@ -50,6 +51,7 @@ export default function App() {
               {auth && (auth.feePaid === false
                 ? <NavLink to="/fee">Pay $5 fee</NavLink>
                 : <NavLink to={HOME[auth.role]}>{auth.role === "ADMIN" ? "Admin" : auth.role === "SELLER" ? "Seller" : "My orders"}</NavLink>)}
+              {auth && auth.feePaid !== false && <NavLink to="/account">Account</NavLink>}
             </div>
             <div className="acts">
               <Link to="/cart" id="cartlink">Cart ({items.length})</Link>
@@ -67,6 +69,7 @@ export default function App() {
           <Route path="/payment/success" element={<PaymentReturn />} />
           <Route path="/payment/cancel" element={<PaymentCancel />} />
           <Route path="/fee" element={<Fee />} />
+          <Route path="/account" element={<RequireRole roles={["BUYER", "SELLER", "ADMIN"]}><Account /></RequireRole>} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/register" element={<RegisterProject />} />
           <Route path="/games" element={<Games />} />

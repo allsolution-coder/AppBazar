@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 public interface OrderRepository extends JpaRepository<Orders, Long> {
     List<Orders> findByBuyerOrderByIdDesc(User buyer);
     Optional<Orders> findByPaymentRef(String paymentRef);
+    long countByBuyer(User buyer);
 
     @Query("select count(o) > 0 from Orders o join o.items i where o.buyer = :buyer and i.id = :productId")
     boolean hasPurchased(@Param("buyer") User buyer, @Param("productId") Long productId);
