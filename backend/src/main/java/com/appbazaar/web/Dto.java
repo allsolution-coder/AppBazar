@@ -57,5 +57,11 @@ public final class Dto {
     public record NameReq(@NotBlank @Size(max = 60) String name) {}
     public record PasswordReq(@NotBlank String currentPassword,
                               @Size(min = 8, max = 72, message = "New password must be 8 to 72 characters") String newPassword) {}
+    public record UpiStartReq(@NotBlank String kind, List<Long> productIds) {}
+    public record UtrReq(@NotBlank @Size(min = 8, max = 30) String utr) {}
+    public record RejectReq(String reason) {}
+    public record UpiPaymentRes(Long id, String kind, int amountUsd, long amountInr, String reference, String utr,
+                                String status, String note, Instant createdAt, List<String> items, String user) {}
+    public record UpiStartRes(UpiPaymentRes payment, String upiLink, String upiId, String payee) {}
     public record Stats(long liveProducts, long pending, long orders, long revenue, long commission, long feeIncome) {}
 }

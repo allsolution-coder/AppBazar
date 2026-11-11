@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.*;
 
 import com.appbazaar.model.*;
 import com.appbazaar.payment.PayPalService;
+import com.appbazaar.payment.UpiService;
 import com.appbazaar.repo.UserRepository;
 import com.appbazaar.security.JwtService;
 import com.appbazaar.security.LoginLimiter;
@@ -25,11 +26,12 @@ public class AuthController {
     private final JwtService jwt;
     private final PayPalService paypal;
     private final LoginLimiter limiter;
+    private final UpiService upi;
     private final int registrationFee;
 
-    public AuthController(UserRepository users, PasswordEncoder encoder, JwtService jwt, PayPalService paypal, LoginLimiter limiter,
+    public AuthController(UserRepository users, PasswordEncoder encoder, JwtService jwt, PayPalService paypal, LoginLimiter limiter, UpiService upi,
                           @Value("${app.registration-fee}") int registrationFee) {
-        this.users = users; this.encoder = encoder; this.jwt = jwt; this.paypal = paypal; this.limiter = limiter; this.registrationFee = registrationFee;
+        this.users = users; this.encoder = encoder; this.jwt = jwt; this.paypal = paypal; this.limiter = limiter; this.upi = upi; this.registrationFee = registrationFee;
     }
 
     private AuthRes res(User u) {
@@ -53,6 +55,13 @@ public class AuthController {
         return res(u);
     }
 
+    /** Gives the logged-in user a fresh token that matches their current fee status (used after a UPI payment is approved). */
+    @PostMapping("/refresh")
+    public AuthRes refresh(Authentication auth) {
+        if (auth == null) throw new ResponseStatusException(UNAUTHORIZED, "Please log in");
+        return res(users.findByEmail(auth.getName()).orElseThrow(() -> new ResponseStatusException(UNAUTHORIZED, "Please log in")));
+    }
+
     @GetMapping("/fee-info")
     public Map<String, Integer> feeInfo() {
         return Map.of("amount", registrationFee);
@@ -61,7 +70,7 @@ public class AuthController {
     /** Demo payment, used only while PayPal is not configured. With PayPal on, the fee is confirmed by PaymentController. */
     @PostMapping("/pay-fee")
     public AuthRes payFee(Authentication auth) {
-        if (paypal.enabled())
+        if (paypal.enabled() || upi.enabled())
             throw new ResponseStatusException(BAD_REQUEST, "Online payments are on. Use the Pay button on the payment page.");
         User u = users.findByEmail(auth.getName()).orElseThrow();
         if (!Boolean.FALSE.equals(u.getFeePaid()))

@@ -29,6 +29,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/pay-fee").hasRole("UNPAID")
                 .requestMatchers("/api/payments/config").permitAll()
                 .requestMatchers("/api/payments/fee-session", "/api/payments/confirm").hasAnyRole("UNPAID", "BUYER", "SELLER", "ADMIN")
+                .requestMatchers("/api/upi/config").permitAll()
+                .requestMatchers("/api/upi/**").hasAnyRole("UNPAID", "BUYER", "SELLER", "ADMIN")
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/{id:\\d+}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products/{id:\\d+}/reviews").permitAll()

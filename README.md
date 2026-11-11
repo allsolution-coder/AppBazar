@@ -19,6 +19,7 @@ Built with **Spring Boot 3 (Java 21)**, **PostgreSQL** and **React (Vite)**.
 - **Student projects group.** College and mini projects live together on a Projects page, with a separate Register your project form (tech stack, college, price and file).
 - **Games.** Game source code and playable game builds have their own Games page and a Sell your game form. Selling game accounts, keys, in-game items or pirated games is not allowed.
 - **Account page.** Every user can see their account details, change their display name and change their password.
+- **UPI QR payments (India).** Buyers can pay in rupees by scanning a UPI QR code. They enter the transaction ID and an admin checks it before approving. PayPal stays available for international buyers.
 - **Search and filters**, light and dark theme, and a responsive layout.
 
 | Seller upload | Admin approval | Buyer downloads |
@@ -89,6 +90,7 @@ Set these as environment variables.
 | `ADMIN_PASSWORD` | `Admin@12345` | Password for the seeded accounts. Change it before the first start |
 | `SEED_DEMO_DATA` | `true` | Set to `false` to skip the demo sellers and products (the admin account is still created) |
 | `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET` | empty | PayPal app credentials. Empty means demo payments |
+| `UPI_ID`, `UPI_NAME`, `INR_PER_USD` | empty | UPI QR payments in rupees. Both `UPI_ID` and `INR_PER_USD` must be set to turn it on |
 | `PAYPAL_BASE` | PayPal sandbox | Set to `https://api-m.paypal.com` for live payments |
 | `FRONTEND_URL` | `http://localhost:5173` | Where PayPal sends the buyer back |
 | `REGISTRATION_FEE` | `5` | Registration fee in whole US dollars |
@@ -109,6 +111,12 @@ By default payments are simulated. To take real online payments, use PayPal (the
 
 The server only counts a payment after asking PayPal that the order is completed, for the right amount and the right account, and it rebuilds the amount from its own product prices. PayPal sends the buyer back to `FRONTEND_URL` (default `http://localhost:5173`). For live payments set `PAYPAL_BASE=https://api-m.paypal.com` with live credentials, and add PayPal webhooks so orders are created even if the buyer closes the tab.
 
+## UPI payments in rupees (QR code)
+
+Set `UPI_ID` (your UPI address), `UPI_NAME` (name shown to payers) and `INR_PER_USD` (the rate you use to turn dollar prices into rupees, for example the current market rate). The Pay with UPI QR option then appears for the registration fee and for the cart.
+
+This is a manual check, not a payment gateway: the buyer pays, types the UTR from their UPI app, and the admin compares it with the UPI app or bank statement before pressing Approve in the admin panel. For automatic confirmation you need a gateway such as Razorpay.
+
 ## API
 
 | Method | Path | Who |
@@ -125,6 +133,10 @@ The server only counts a payment after asking PayPal that the order is completed
 | POST | `/api/auth/pay-fee` | newly registered account that has not paid yet |
 | GET | `/api/payments/config` | public |
 | POST | `/api/payments/fee-session`, `/api/payments/order-session`, `/api/payments/confirm` | logged in (PayPal on) |
+| GET | `/api/upi/config` | public |
+| POST | `/api/upi/start`, `/api/upi/{id}/submit` | logged in |
+| GET | `/api/upi/mine` | logged in |
+| GET, POST | `/api/admin/upi`, `/api/admin/upi/{id}/approve`, `/api/admin/upi/{id}/reject` | admin |
 | POST | `/api/orders` | logged in (demo checkout, off when PayPal is on) |
 | GET | `/api/orders/mine` | logged in |
 | GET, PUT | `/api/account/me` | logged in (details, display name) |
