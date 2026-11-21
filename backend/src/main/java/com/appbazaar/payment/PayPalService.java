@@ -13,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +30,7 @@ public class PayPalService {
     private final String secret;
     private final String base;
     private final String frontendUrl;
-    private final HttpClient http = HttpClient.newHttpClient();
+    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
     private final ObjectMapper mapper = new ObjectMapper();
 
     public PayPalService(@Value("${app.paypal-client-id}") String clientId,
@@ -87,6 +88,7 @@ public class PayPalService {
 
     private HttpRequest.Builder request(String path) {
         return HttpRequest.newBuilder(URI.create(base + path))
+                .timeout(Duration.ofSeconds(15))
                 .header("Authorization", "Bearer " + accessToken())
                 .header("Content-Type", "application/json");
     }
@@ -94,6 +96,7 @@ public class PayPalService {
     private String accessToken() {
         String basic = Base64.getEncoder().encodeToString((clientId + ":" + secret).getBytes(StandardCharsets.UTF_8));
         HttpRequest req = HttpRequest.newBuilder(URI.create(base + "/v1/oauth2/token"))
+                .timeout(Duration.ofSeconds(15))
                 .header("Authorization", "Basic " + basic)
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .POST(HttpRequest.BodyPublishers.ofString("grant_type=client_credentials"))

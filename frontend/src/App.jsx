@@ -91,7 +91,7 @@ export default function App() {
         <div className="w">
           <Link to="/privacy" style={{ marginRight: 14 }}>Privacy policy</Link>
           <Link to="/terms" style={{ marginRight: 14 }}>Terms and conditions</Link>
-          <span>© 2026 AppBazaar. Payments are simulated.</span>
+          <span>© 2026 AppBazaar.</span>
         </div>
       </footer>
     </>

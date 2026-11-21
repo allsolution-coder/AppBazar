@@ -2,7 +2,9 @@ package com.appbazaar;
 
 import com.appbazaar.model.*;
 import com.appbazaar.repo.*;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,6 +13,10 @@ import org.springframework.stereotype.Component;
 /** Makes sure the admin account exists. On a fresh database it also adds demo sellers and listings (SEED_DEMO_DATA=false turns that off). */
 @Component
 public class DataSeeder implements CommandLineRunner {
+    private static final String ADMIN_EMAIL = "admin@appbazaar.com";
+    private static final String LEGACY_PASSWORD = "Admin@12345";
+    private static final List<String> DEMO_ACCOUNTS = List.of("kavya", "ravi", "pixel", "neural", "meera", "projects");
+
     private final UserRepository users;
     private final ProductRepository products;
     private final PasswordEncoder encoder;
@@ -27,7 +33,7 @@ public class DataSeeder implements CommandLineRunner {
     private User user(String name, String email, Role role) {
         User u = new User();
         u.setName(name); u.setEmail(email); u.setRole(role);
-        u.setPasswordHash(encoder.encode(seedPassword));
+        u.setPasswordHash(encoder.encode(role == Role.ADMIN ? seedPassword : UUID.randomUUID().toString()));
         return users.save(u);
     }
 
@@ -40,7 +46,24 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (users.findByEmail("admin@appbazaar.com").isEmpty()) user("Admin", "admin@appbazaar.com", Role.ADMIN);
+        if (seedPassword.isBlank() || seedPassword.length() < 16 || LEGACY_PASSWORD.equalsIgnoreCase(seedPassword.trim())
+                || seedPassword.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalStateException("Configure ADMIN_PASSWORD with at least 16 characters and at most 72 UTF-8 bytes");
+        }
+        User admin = users.findByEmail(ADMIN_EMAIL).orElseGet(() -> user("Admin", ADMIN_EMAIL, Role.ADMIN));
+        if (encoder.matches(LEGACY_PASSWORD, admin.getPasswordHash())) {
+            admin.setPasswordHash(encoder.encode(seedPassword));
+            users.save(admin);
+        }
+        for (String demo : DEMO_ACCOUNTS) {
+            users.findByEmail(demo + "@appbazaar.com").filter(u -> u.getRole() == Role.SELLER).ifPresent(u -> {
+                if (encoder.matches(LEGACY_PASSWORD, u.getPasswordHash())
+                        || encoder.matches(seedPassword, u.getPasswordHash())) {
+                    u.setPasswordHash(encoder.encode(UUID.randomUUID().toString()));
+                    users.save(u);
+                }
+            });
+        }
         if (!seedDemo) return;
         if (users.count() <= 1) seedBase(); // demo sellers and products only on a fresh database
         seedProjects();

@@ -17,6 +17,7 @@ export default function Cart() {
   const cfg = useApi("/payments/config");
   const upiCfg = useApi("/upi/config");
   const paypalOn = !!(cfg.data && cfg.data.online);
+  const demoOn = cfg.data?.demo === true;
   const upiOn = !!(upiCfg.data && upiCfg.data.enabled);
   const total = items.reduce((a, p) => a + p.price, 0);
 
@@ -58,8 +59,9 @@ export default function Cart() {
             </table>
           </div>
           {error && <p className="err">{error}</p>}
-          {(paypalOn || !upiOn || !auth) && (
-            <p><button disabled={busy} onClick={pay}>{!auth ? "Log in to pay" : paypalOn ? "Pay with PayPal" : "Pay now (demo)"}</button></p>
+          {auth && auth.feePaid !== false && !paypalOn && !demoOn && !upiOn && <p>Checkout is currently unavailable.</p>}
+          {(paypalOn || demoOn || !auth || auth.feePaid === false) && (
+            <p><button disabled={busy} onClick={pay}>{!auth ? "Log in to pay" : auth.feePaid === false ? "Complete registration" : paypalOn ? "Pay with PayPal" : "Pay now (demo)"}</button></p>
           )}
           {auth && auth.feePaid !== false && upiOn && (
             <div className="box" style={{ marginTop: 16, maxWidth: 520 }}>

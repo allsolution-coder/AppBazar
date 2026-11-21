@@ -23,6 +23,7 @@ export default function Fee() {
 
   const amount = info.data ? info.data.amount : 5;
   const paypalOn = !!(cfg.data && cfg.data.online);
+  const demoOn = cfg.data?.demo === true;
   const upiOn = !!(upiCfg.data && upiCfg.data.enabled);
 
   async function pay() {
@@ -51,7 +52,8 @@ export default function Fee() {
     <section>
       <h2>Complete your registration</h2>
       <div className="cols">
-        {(paypalOn || !upiOn) && (
+        {!paypalOn && !demoOn && !upiOn && <p>Registration payments are currently unavailable.</p>}
+        {(paypalOn || demoOn) && (
           <div className="box" style={{ maxWidth: 460 }}>
             <h3>One-time registration fee</h3>
             <p className="price">{usd(amount)}</p>

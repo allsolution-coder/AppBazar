@@ -1,6 +1,9 @@
 package com.appbazaar.security;
 
+import com.appbazaar.model.User;
+import com.appbazaar.repo.UserRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
@@ -16,7 +19,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwt;
 
-    public JwtFilter(JwtService jwt) { this.jwt = jwt; }
+    private final UserRepository users;
+
+    public JwtFilter(JwtService jwt, UserRepository users) {
+        this.jwt = jwt;
+        this.users = users;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
@@ -25,12 +33,14 @@ public class JwtFilter extends OncePerRequestFilter {
         if (h != null && h.startsWith("Bearer ")) {
             try {
                 Claims c = jwt.parse(h.substring(7));
-                // an account that has not paid the registration fee only gets the UNPAID role
-                String role = Boolean.FALSE.equals(c.get("paid", Boolean.class)) ? "UNPAID" : c.get("role", String.class);
-                var auth = new UsernamePasswordAuthenticationToken(
-                        c.getSubject(), null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            } catch (Exception ignored) {
+                User user = users.findByEmail(c.getSubject()).orElse(null);
+                if (user != null && JwtService.credentialVersion(user).equals(c.get("credentialVersion", String.class))) {
+                    String role = Boolean.FALSE.equals(user.getFeePaid()) ? "UNPAID" : user.getRole().name();
+                    var auth = new UsernamePasswordAuthenticationToken(
+                            user.getEmail(), null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            } catch (JwtException | IllegalArgumentException ignored) {
                 // invalid or expired token: request continues unauthenticated
             }
         }

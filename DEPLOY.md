@@ -40,12 +40,13 @@ Free plans change, so check each pricing page before you start. Render's free ba
 |---|---|
 | `DB_URL`, `DB_USER`, `DB_PASS` | From step 1 |
 | `JWT_SECRET` | A long random text (40 or more characters). Never share it |
-| `ADMIN_PASSWORD` | A strong password for the admin account |
+| `ADMIN_PASSWORD` | A strong password of at least 16 characters and at most 72 UTF-8 bytes |
 | `S3_BUCKET`, `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | From step 2 |
 | `BREVO_API_KEY`, `MAIL_FROM` | From step 3 |
 | `CORS_ORIGIN`, `FRONTEND_URL` | The frontend address from step 5 (set after step 5, then redeploy) |
-| `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET` | Optional. PayPal sandbox keys. Without them payments stay in demo mode |
-| `SEED_DEMO_DATA` | `true` for sample products, `false` for an empty marketplace |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET` | Optional. Keep unset if launching with manual UPI only |
+| `SEED_DEMO_DATA`, `DEMO_MODE` | Leave both false in production |
+| `UPI_ID`, `UPI_NAME`, `INR_PER_USD` | Configure for manual UPI payments |
 
 4. Deploy. When it is live, open `https://YOUR-BACKEND.onrender.com/api/products`. You should see JSON.
 
@@ -56,7 +57,7 @@ Free plans change, so check each pricing page before you start. Render's free ba
 4. Deploy. Copy the site address, put it into `CORS_ORIGIN` and `FRONTEND_URL` on the backend, and redeploy the backend.
 
 ## 6. Check it
-Open the site, enter an email, and you should get a login code by email. Log in as admin with `admin@appbazaar.com` and your `ADMIN_PASSWORD` on the hidden `/staff` page (for example `https://YOUR-SITE.onrender.com/staff`).
+Open the site, enter an email, and you should get a login code by email. On a fresh setup, log in as admin with `admin@appbazaar.com` and your `ADMIN_PASSWORD` on the hidden `/staff` page (for example `https://YOUR-SITE.onrender.com/staff`).
 
 ## Notes
 - Anyone who gets your `JWT_SECRET`, database password, or Brevo/Supabase/PayPal secrets can act as your site. Keep them only in Render's environment settings, never in the repo.

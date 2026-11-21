@@ -56,6 +56,9 @@ public class ProductController {
                              @RequestParam(required = false) String college, Authentication auth) {
         if (name.isBlank() || description.isBlank())
             throw new ResponseStatusException(BAD_REQUEST, "Name and description are required");
+        if (name.trim().length() > 255 || description.trim().length() > 2000) {
+            throw new ResponseStatusException(BAD_REQUEST, "Name must be at most 255 characters and description at most 2,000");
+        }
         if (price < 1) throw new ResponseStatusException(BAD_REQUEST, "Price must be at least 1");
         if (!CATEGORIES.contains(category)) throw new ResponseStatusException(BAD_REQUEST, "Unknown category");
         boolean project = category.endsWith(" projects") || category.startsWith("Game"); // these need a tech stack

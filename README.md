@@ -68,14 +68,10 @@ You need Java 21, Maven, Node 18 or newer, and PostgreSQL.
 
 On Windows, `start-backend.ps1` and `start-frontend.ps1` do steps 2 and 3 for you.
 
-### Demo accounts
+### Seeded accounts
 
-Created on first start, with sample listings.
-
-| Role | Email | Password |
-|---|---|---|
-| Admin | admin@appbazaar.com | Admin@12345 |
-| Seller | kavya@appbazaar.com | Admin@12345 |
+The admin account is created on first startup with the configured `ADMIN_PASSWORD`.
+Sample sellers and listings require `SEED_DEMO_DATA=true`. Seeded seller accounts receive random passwords.
 
 Everyone logs in with email and password. New buyers and sellers sign up on the Log in page ("Create an account"). Admin accounts cannot be created from the website.
 
@@ -86,10 +82,10 @@ Set these as environment variables.
 | Variable | Default | Purpose |
 |---|---|---|
 | `DB_URL`, `DB_USER`, `DB_PASS` | localhost, `postgres`, `postgres` | PostgreSQL connection |
-| `JWT_SECRET` | a placeholder | **Set a long random value in any real deployment** |
-| `ADMIN_PASSWORD` | `Admin@12345` | Password for the seeded accounts. Change it before the first start |
-| `SEED_DEMO_DATA` | `true` | Set to `false` to skip the demo sellers and products (the admin account is still created) |
-| `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET` | empty | PayPal app credentials. Empty means demo payments |
+| `JWT_SECRET` | Required | Set a random value of at least 32 UTF-8 bytes |
+| `ADMIN_PASSWORD` | Required | Set a strong password of at least 16 characters and at most 72 UTF-8 bytes |
+| `SEED_DEMO_DATA` | `false` | Set to `true` locally to create demo sellers and listings |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET` | empty | PayPal app credentials. Both are required to enable PayPal |
 | `UPI_ID`, `UPI_NAME`, `INR_PER_USD` | empty | UPI QR payments in rupees. Both `UPI_ID` and `INR_PER_USD` must be set to turn it on |
 | `PAYPAL_BASE` | PayPal sandbox | Set to `https://api-m.paypal.com` for live payments |
 | `FRONTEND_URL` | `http://localhost:5173` | Where PayPal sends the buyer back |
@@ -103,7 +99,7 @@ Set these as environment variables.
 
 ## Online payments with PayPal
 
-By default payments are simulated. To take real online payments, use PayPal (the sandbox is free and works from India):
+With neither PayPal nor UPI configured, payments are unavailable by default. Set `DEMO_MODE=true` only for isolated development. To test PayPal:
 
 1. Go to developer.paypal.com, log in with a PayPal account, open **Apps & Credentials**, switch to **Sandbox**, and create an app. Copy its **Client ID** and **Secret**.
 2. Start the backend with `PAYPAL_CLIENT_ID` and `PAYPAL_SECRET` set. `start-backend.ps1` asks for them.
@@ -163,7 +159,7 @@ See [DEPLOY.md](DEPLOY.md): Render (backend and frontend), Neon (database), Supa
 - PayPal webhooks for production, and Razorpay for payments in rupees
 - Prices in cents, to support amounts like $9.99
 - Email notifications for orders and approvals (the mail setup for login codes is already in place)
-- Automated tests for the API and the main user flows
+- More integration tests for the API and main user flows
 
 ## Author
 

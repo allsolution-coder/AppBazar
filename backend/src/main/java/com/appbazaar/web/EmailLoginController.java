@@ -129,7 +129,6 @@ public class EmailLoginController {
             throw new ResponseStatusException(BAD_REQUEST, "The code expired. Ask for a new one");
         }
         if (lc.getAttempts() >= MAX_ATTEMPTS) {
-            codes.delete(lc);
             throw new ResponseStatusException(TOO_MANY_REQUESTS, "Too many wrong tries. Ask for a new code");
         }
         boolean ok = MessageDigest.isEqual(
