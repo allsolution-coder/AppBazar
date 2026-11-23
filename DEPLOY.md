@@ -44,9 +44,8 @@ Free plans change, so check each pricing page before you start. Render's free ba
 | `S3_BUCKET`, `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | From step 2 |
 | `BREVO_API_KEY`, `MAIL_FROM` | From step 3 |
 | `CORS_ORIGIN`, `FRONTEND_URL` | The frontend address from step 5 (set after step 5, then redeploy) |
-| `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET` | Optional. Keep unset if launching with manual UPI only |
-| `SEED_DEMO_DATA`, `DEMO_MODE` | Leave both false in production |
-| `UPI_ID`, `UPI_NAME`, `INR_PER_USD` | Configure for manual UPI payments |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET` | Required to enable PayPal checkout |
+| `SEED_DEMO_DATA` | Leave false in production |
 
 4. Deploy. When it is live, open `https://YOUR-BACKEND.onrender.com/api/products`. You should see JSON.
 

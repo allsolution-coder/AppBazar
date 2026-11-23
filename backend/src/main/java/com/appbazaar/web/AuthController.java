@@ -3,14 +3,11 @@ package com.appbazaar.web;
 import static org.springframework.http.HttpStatus.*;
 
 import com.appbazaar.model.*;
-import com.appbazaar.payment.PayPalService;
-import com.appbazaar.payment.UpiService;
 import com.appbazaar.repo.UserRepository;
 import com.appbazaar.security.JwtService;
 import com.appbazaar.security.LoginLimiter;
 import com.appbazaar.web.Dto.*;
 import jakarta.validation.Valid;
-import java.time.Instant;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -24,17 +21,13 @@ public class AuthController {
     private final UserRepository users;
     private final PasswordEncoder encoder;
     private final JwtService jwt;
-    private final PayPalService paypal;
-    private final boolean demoMode;
     private final LoginLimiter limiter;
-    private final UpiService upi;
     private final int registrationFee;
 
-    public AuthController(UserRepository users, PasswordEncoder encoder, JwtService jwt, PayPalService paypal, LoginLimiter limiter, UpiService upi,
-                          @Value("${app.demo-mode}") boolean demoMode,
+    public AuthController(UserRepository users, PasswordEncoder encoder, JwtService jwt, LoginLimiter limiter,
                           @Value("${app.registration-fee}") int registrationFee) {
-        this.users = users; this.encoder = encoder; this.jwt = jwt; this.paypal = paypal; this.limiter = limiter; this.upi = upi;
-        this.demoMode = demoMode; this.registrationFee = registrationFee;
+        this.users = users; this.encoder = encoder; this.jwt = jwt; this.limiter = limiter;
+        this.registrationFee = registrationFee;
     }
 
     private AuthRes res(User u) {
@@ -68,20 +61,5 @@ public class AuthController {
     @GetMapping("/fee-info")
     public Map<String, Integer> feeInfo() {
         return Map.of("amount", registrationFee);
-    }
-
-    /** Demo payment, used only while PayPal is not configured. With PayPal on, the fee is confirmed by PaymentController. */
-    @PostMapping("/pay-fee")
-    public AuthRes payFee(Authentication auth) {
-        if (paypal.enabled() || upi.enabled())
-            throw new ResponseStatusException(BAD_REQUEST, "Online payments are on. Use the Pay button on the payment page.");
-        if (!demoMode) throw new ResponseStatusException(SERVICE_UNAVAILABLE, "Payments are currently unavailable");
-        User u = users.findByEmail(auth.getName()).orElseThrow();
-        if (!Boolean.FALSE.equals(u.getFeePaid()))
-            throw new ResponseStatusException(CONFLICT, "Registration fee is already paid");
-        u.setFeePaid(true);
-        u.setFeePaidAt(Instant.now());
-        users.save(u);
-        return res(u);
     }
 }

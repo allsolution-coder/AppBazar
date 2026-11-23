@@ -3,22 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { api, useApi } from "../api";
 import { useAuth } from "../auth";
 import { useCart } from "../cart";
-import UpiPay from "../UpiPay";
-import { usd, useToast } from "../ui";
+import { usd } from "../ui";
 
 export default function Cart() {
-  const { items, remove, clear } = useCart();
+  const { items, remove } = useCart();
   const { auth } = useAuth();
   const nav = useNavigate();
-  const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [upiSent, setUpiSent] = useState(false);
   const cfg = useApi("/payments/config");
-  const upiCfg = useApi("/upi/config");
   const paypalOn = !!(cfg.data && cfg.data.online);
-  const demoOn = cfg.data?.demo === true;
-  const upiOn = !!(upiCfg.data && upiCfg.data.enabled);
   const total = items.reduce((a, p) => a + p.price, 0);
 
   async function pay() {
@@ -26,22 +20,10 @@ export default function Cart() {
     if (auth.feePaid === false) return nav("/fee");
     setBusy(true); setError("");
     try {
-      if (paypalOn) {
-        const { url } = await api("/payments/order-session", { method: "POST", body: { productIds: items.map((p) => p.id) } });
-        location.assign(url);
-        return;
-      }
-      await api("/orders", { method: "POST", body: { productIds: items.map((p) => p.id) } });
-      clear(); toast("Payment successful"); nav("/buyer");
+      const { url } = await api("/payments/order-session", { method: "POST", body: { productIds: items.map((p) => p.id) } });
+      location.assign(url);
     } catch (e) { setError(e.message); } finally { setBusy(false); }
   }
-
-  if (upiSent) return (
-    <section>
-      <h2>Payment submitted</h2>
-      <p style={{ maxWidth: "56ch" }}>Thank you. We check your UPI payment, and then your order appears in <Link to="/buyer">My orders</Link>, where you can download your files. This can take a little while.</p>
-    </section>
-  );
 
   return (
     <section>
@@ -59,15 +41,9 @@ export default function Cart() {
             </table>
           </div>
           {error && <p className="err">{error}</p>}
-          {auth && auth.feePaid !== false && !paypalOn && !demoOn && !upiOn && <p>Checkout is currently unavailable.</p>}
-          {(paypalOn || demoOn || !auth || auth.feePaid === false) && (
-            <p><button disabled={busy} onClick={pay}>{!auth ? "Log in to pay" : auth.feePaid === false ? "Complete registration" : paypalOn ? "Pay with PayPal" : "Pay now (demo)"}</button></p>
-          )}
-          {auth && auth.feePaid !== false && upiOn && (
-            <div className="box" style={{ marginTop: 16, maxWidth: 520 }}>
-              <h3>Paying from India?</h3>
-              <UpiPay kind="order" productIds={items.map((p) => p.id)} onSubmitted={() => { setUpiSent(true); clear(); }} />
-            </div>
+          {auth && auth.feePaid !== false && !paypalOn && <p>{cfg.error || (cfg.data ? "Checkout is currently unavailable." : "Checking PayPal availability…")}</p>}
+          {(paypalOn || !auth || auth.feePaid === false) && (
+            <p><button disabled={busy} onClick={pay}>{!auth ? "Log in to pay" : auth.feePaid === false ? "Complete registration" : "Pay with PayPal"}</button></p>
           )}
         </>
       ) : <p>Your cart is empty. <Link to="/browse">Find something to buy</Link>.</p>}

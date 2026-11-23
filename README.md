@@ -8,18 +8,17 @@ Built with **Spring Boot 3 (Java 21)**, **PostgreSQL** and **React (Vite)**.
 
 ## Features
 
-- **Registration fee.** Every new buyer and seller pays a one-time $5 fee (simulated for now) before the account is active. The admin panel shows the fee income.
+- **Registration fee.** Every new buyer and seller pays a one-time $5 fee before the account is active. The admin panel shows the fee income.
 - **Email and password login.** Sign up with an email and a password, then confirm the email once with a 6-digit code (it also lets you reset a forgotten password). Codes are stored hashed, expire in 10 minutes, and allow 5 tries. Passwords are hashed with BCrypt and wrong passwords are rate limited.
 - **Three roles.** Buyer, seller and admin, with JWT login and role-based access on every endpoint.
 - **Seller uploads.** A seller lists a product together with the file buyers will receive (zip, rar, 7z, tar, gz, pdf, apk, jar, txt, md, up to 50 MB).
 - **Admin approval.** New listings wait in an approval queue. The admin can download the file to review it, then approve or reject. Only approved products are public.
-- **Cart and checkout.** Prices are always read from the database, never from the browser. Payment is simulated for now.
+- **Cart and checkout.** Prices are always read from the database, never from the browser. Payments use PayPal.
 - **Protected downloads.** Only a buyer who paid, the product's seller, or an admin can download a file. Files are stored under random names.
 - **Real reviews.** Only buyers of a product can review it. A product's rating is the average of its real reviews.
 - **Student projects group.** College and mini projects live together on a Projects page, with a separate Register your project form (tech stack, college, price and file).
 - **Games.** Game source code and playable game builds have their own Games page and a Sell your game form. Selling game accounts, keys, in-game items or pirated games is not allowed.
 - **Account page.** Every user can see their account details, change their display name and change their password.
-- **UPI QR payments (India).** Buyers can pay in rupees by scanning a UPI QR code. They enter the transaction ID and an admin checks it before approving. PayPal stays available for international buyers.
 - **Search and filters**, light and dark theme, and a responsive layout.
 
 | Seller upload | Admin approval | Buyer downloads |
@@ -86,7 +85,6 @@ Set these as environment variables.
 | `ADMIN_PASSWORD` | Required | Set a strong password of at least 16 characters and at most 72 UTF-8 bytes |
 | `SEED_DEMO_DATA` | `false` | Set to `true` locally to create demo sellers and listings |
 | `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET` | empty | PayPal app credentials. Both are required to enable PayPal |
-| `UPI_ID`, `UPI_NAME`, `INR_PER_USD` | empty | UPI QR payments in rupees. Both `UPI_ID` and `INR_PER_USD` must be set to turn it on |
 | `PAYPAL_BASE` | PayPal sandbox | Set to `https://api-m.paypal.com` for live payments |
 | `FRONTEND_URL` | `http://localhost:5173` | Where PayPal sends the buyer back |
 | `REGISTRATION_FEE` | `5` | Registration fee in whole US dollars |
@@ -99,7 +97,7 @@ Set these as environment variables.
 
 ## Online payments with PayPal
 
-With neither PayPal nor UPI configured, payments are unavailable by default. Set `DEMO_MODE=true` only for isolated development. To test PayPal:
+Payments are unavailable until PayPal is configured. To test PayPal:
 
 1. Go to developer.paypal.com, log in with a PayPal account, open **Apps & Credentials**, switch to **Sandbox**, and create an app. Copy its **Client ID** and **Secret**.
 2. Start the backend with `PAYPAL_CLIENT_ID` and `PAYPAL_SECRET` set. `start-backend.ps1` asks for them.
@@ -107,11 +105,7 @@ With neither PayPal nor UPI configured, payments are unavailable by default. Set
 
 The server only counts a payment after asking PayPal that the order is completed, for the right amount and the right account, and it rebuilds the amount from its own product prices. PayPal sends the buyer back to `FRONTEND_URL` (default `http://localhost:5173`). For live payments set `PAYPAL_BASE=https://api-m.paypal.com` with live credentials, and add PayPal webhooks so orders are created even if the buyer closes the tab.
 
-## UPI payments in rupees (QR code)
-
-Set `UPI_ID` (your UPI address), `UPI_NAME` (name shown to payers) and `INR_PER_USD` (the rate you use to turn dollar prices into rupees, for example the current market rate). The Pay with UPI QR option then appears for the registration fee and for the cart.
-
-This is a manual check, not a payment gateway: the buyer pays, types the UTR from their UPI app, and the admin compares it with the UPI app or bank statement before pressing Approve in the admin panel. For automatic confirmation you need a gateway such as Razorpay.
+Existing UPI submissions can still be reviewed in the admin dashboard. New payments use PayPal.
 
 ## API
 
@@ -126,14 +120,11 @@ This is a manual check, not a payment gateway: the buyer pays, types the UTR fro
 | GET | `/api/products/mine` | seller |
 | GET, POST | `/api/products/{id}/reviews` | read: public. Write: buyer who paid |
 | GET | `/api/auth/fee-info` | public |
-| POST | `/api/auth/pay-fee` | newly registered account that has not paid yet |
 | GET | `/api/payments/config` | public |
 | POST | `/api/payments/fee-session`, `/api/payments/order-session`, `/api/payments/confirm` | logged in (PayPal on) |
-| GET | `/api/upi/config` | public |
-| POST | `/api/upi/start`, `/api/upi/{id}/submit` | logged in |
+| POST | `/api/upi/{id}/submit` (existing payments only) | logged in |
 | GET | `/api/upi/mine` | logged in |
 | GET, POST | `/api/admin/upi`, `/api/admin/upi/{id}/approve`, `/api/admin/upi/{id}/reject` | admin |
-| POST | `/api/orders` | logged in (demo checkout, off when PayPal is on) |
 | GET | `/api/orders/mine` | logged in |
 | GET, PUT | `/api/account/me` | logged in (details, display name) |
 | POST | `/api/account/password` | logged in (change password) |

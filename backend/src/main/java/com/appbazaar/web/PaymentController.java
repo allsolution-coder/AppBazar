@@ -4,7 +4,6 @@ import static org.springframework.http.HttpStatus.*;
 
 import com.appbazaar.model.*;
 import com.appbazaar.payment.PayPalService;
-import com.appbazaar.payment.UpiService;
 import com.appbazaar.payment.PayPalService.Item;
 import com.appbazaar.repo.*;
 import com.appbazaar.security.JwtService;
@@ -35,18 +34,14 @@ public class PaymentController {
     private final ProductRepository products;
     private final OrderRepository orders;
     private final JwtService jwt;
-    private final UpiService upi;
-    private final boolean demoMode;
     private final int registrationFee;
 
     public PaymentController(PayPalService paypal, UserRepository users, ProductRepository products,
-                             OrderRepository orders, JwtService jwt, UpiService upi,
-                             @Value("${app.demo-mode}") boolean demoMode,
+                             OrderRepository orders, JwtService jwt,
                              @Value("${app.registration-fee}") int registrationFee) {
         this.paypal = paypal; this.users = users; this.products = products;
         this.orders = orders; this.jwt = jwt;
-        this.upi = upi;
-        this.demoMode = demoMode; this.registrationFee = registrationFee;
+        this.registrationFee = registrationFee;
     }
 
     private void requirePayPal() {
@@ -63,7 +58,7 @@ public class PaymentController {
 
     @GetMapping("/config")
     public Map<String, Object> config() {
-        return Map.of("online", paypal.enabled(), "demo", demoMode && !paypal.enabled() && !upi.enabled(), "provider", "PayPal", "fee", registrationFee);
+        return Map.of("online", paypal.enabled(), "provider", "PayPal", "fee", registrationFee);
     }
 
     @PostMapping("/fee-session")
