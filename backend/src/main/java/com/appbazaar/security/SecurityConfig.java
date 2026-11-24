@@ -26,9 +26,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(a -> a
                 // without this, every error (even a clear message) is hidden behind a plain 401 for logged-out visitors
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                .requestMatchers("/api/payments/razorpay-registration/**").hasAnyRole("UNPAID", "BUYER", "SELLER", "ADMIN")
                 .requestMatchers("/api/payments/config").permitAll()
                 .requestMatchers("/api/payments/fee-session", "/api/payments/confirm").hasAnyRole("UNPAID", "BUYER", "SELLER", "ADMIN")
-                .requestMatchers("/api/upi/**").hasAnyRole("UNPAID", "BUYER", "SELLER", "ADMIN")
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/{id:\\d+}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products/{id:\\d+}/reviews").permitAll()

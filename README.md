@@ -105,7 +105,7 @@ Payments are unavailable until PayPal is configured. To test PayPal:
 
 The server only counts a payment after asking PayPal that the order is completed, for the right amount and the right account, and it rebuilds the amount from its own product prices. PayPal sends the buyer back to `FRONTEND_URL` (default `http://localhost:5173`). For live payments set `PAYPAL_BASE=https://api-m.paypal.com` with live credentials, and add PayPal webhooks so orders are created even if the buyer closes the tab.
 
-Existing UPI submissions can still be reviewed in the admin dashboard. New payments use PayPal.
+UPI payments have been removed. New registration and product payments use PayPal when valid PayPal credentials are configured; otherwise checkout stays disabled.
 
 ## API
 
@@ -122,9 +122,6 @@ Existing UPI submissions can still be reviewed in the admin dashboard. New payme
 | GET | `/api/auth/fee-info` | public |
 | GET | `/api/payments/config` | public |
 | POST | `/api/payments/fee-session`, `/api/payments/order-session`, `/api/payments/confirm` | logged in (PayPal on) |
-| POST | `/api/upi/{id}/submit` (existing payments only) | logged in |
-| GET | `/api/upi/mine` | logged in |
-| GET, POST | `/api/admin/upi`, `/api/admin/upi/{id}/approve`, `/api/admin/upi/{id}/reject` | admin |
 | GET | `/api/orders/mine` | logged in |
 | GET, PUT | `/api/account/me` | logged in (details, display name) |
 | POST | `/api/account/password` | logged in (change password) |

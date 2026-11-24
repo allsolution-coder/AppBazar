@@ -51,7 +51,7 @@ public class AuthController {
         return res(u);
     }
 
-    /** Gives the logged-in user a fresh token that matches their current fee status (used after a UPI payment is approved). */
+    /** Gives the logged-in user a fresh token that matches their current fee status after a payment is approved. */
     @PostMapping("/refresh")
     public AuthRes refresh(Authentication auth) {
         if (auth == null) throw new ResponseStatusException(UNAUTHORIZED, "Please log in");

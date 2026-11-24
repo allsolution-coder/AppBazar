@@ -4,14 +4,12 @@ import { CATS } from "../constants";
 import { Loading, fmtSize, usd, useToast } from "../ui";
 
 const MAX_MB = 50;
-const UPI_LABEL = { PENDING: "Not submitted", SUBMITTED: "Waiting for check", APPROVED: "Approved", REJECTED: "Rejected" };
 const ACCEPT = ".zip,.rar,.7z,.tar,.gz,.pdf,.apk,.jar,.txt,.md,.unitypackage";
 
 export function Buyer() {
   const { data, error } = useApi("/orders/mine");
   const toast = useToast();
   const get = (i) => downloadFile(i.id, i.fileName).catch((e) => toast(e.message));
-  const upi = useApi("/upi/mine");
   return (
     <section>
       <h2>My orders</h2>
@@ -39,26 +37,6 @@ export function Buyer() {
           </table>
         </div>
       ) : <p>No orders yet. Browse products to place your first one.</p>}
-      {upi.data && upi.data.length > 0 && (
-        <>
-          <h2 style={{ marginTop: 28 }}>My UPI payments</h2>
-          <div className="tbl">
-            <table>
-              <thead><tr><th>Reference</th><th>For</th><th>Amount</th><th>Status</th></tr></thead>
-              <tbody>
-                {upi.data.map((p) => (
-                  <tr key={p.id}>
-                    <td>{p.reference}</td>
-                    <td>{p.kind === "fee" ? "Registration fee" : p.items.join(", ")}</td>
-                    <td>₹{p.amountInr}</td>
-                    <td><span className={"pill" + (p.status === "APPROVED" ? " ok" : "")}>{UPI_LABEL[p.status] || p.status}{p.status === "REJECTED" && p.note ? `: ${p.note}` : ""}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
     </section>
   );
 }
@@ -120,21 +98,7 @@ export function Admin() {
   const stats = useApi("/admin/stats");
   const pending = useApi("/admin/pending");
   const toast = useToast();
-  const upi = useApi("/admin/upi");
-  const refresh = () => { stats.reload(); pending.reload(); upi.reload(); };
-
-  async function actUpi(id, approve) {
-    let body;
-    if (!approve) {
-      const reason = window.prompt("Reason for rejecting (optional)");
-      if (reason === null) return;
-      body = { reason };
-    }
-    try {
-      await api(`/admin/upi/${id}/${approve ? "approve" : "reject"}`, { method: "POST", body });
-      toast(approve ? "Approved" : "Rejected"); refresh();
-    } catch (e) { toast(e.message); }
-  }
+  const refresh = () => { stats.reload(); pending.reload(); };
 
   async function act(id, approve) {
     try {
@@ -166,16 +130,6 @@ export function Admin() {
           <button className="ghost" onClick={() => act(p.id, false)}>Reject</button>
         </div>
       )) : <p>Queue is clear. New seller uploads will appear here.</p>}
-      <h2 style={{ marginTop: 28 }}>UPI payments to check</h2>
-      <p className="tag">Open your UPI app or bank statement and make sure the same transaction ID and amount arrived before you approve.</p>
-      {!upi.data ? <Loading error={upi.error} /> : upi.data.length ? upi.data.map((p) => (
-        <div className="box" style={{ marginBottom: 10 }} key={p.id}>
-          <b>₹{p.amountInr}</b> (${p.amountUsd}) · {p.kind === "fee" ? "Registration fee" : p.items.join(", ")}<br />
-          <span className="tag">{p.user} · Transaction ID: {p.utr} · Reference: {p.reference}</span><br />
-          <button onClick={() => actUpi(p.id, true)}>Approve</button>{" "}
-          <button className="ghost" onClick={() => actUpi(p.id, false)}>Reject</button>
-        </div>
-      )) : <p>No UPI payments are waiting.</p>}
     </section>
   );
 }

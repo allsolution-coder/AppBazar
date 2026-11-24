@@ -55,7 +55,7 @@ export default function Login() {
 
   const codeBox = (
     <label>6-digit code
-      <input value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" required autoFocus />
+      <input value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" required />
     </label>
   );
   const errBox = error && <span className="err">{error}</span>;
@@ -114,10 +114,11 @@ export default function Login() {
     <section>
       <h2>Set a new password</h2>
       <p className="tag">If <b>{email}</b> has an account, a 6-digit code is on its way. It works for 10 minutes.</p>
+      <p className="tag">Enter the new password in the password box below. The Save button activates after the 6-digit code is entered. If no code arrives, check that this is the email used for your account, then check Inbox and Spam.</p>
       {devMode && <p className="tag">Mail is not set up on this server (development mode). The code is printed in the backend window.</p>}
       <form onSubmit={doReset}>
         {codeBox}
-        <label>New password (8 or more characters)<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} maxLength={72} autoComplete="new-password" required /></label>
+        <label>New password (8 or more characters)<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} maxLength={72} autoComplete="new-password" required autoFocus /></label>
         {errBox}
         <button disabled={busy || code.length !== 6}>Save password and log in</button>
         <button type="button" className="ghost" disabled={busy || cooldown > 0} onClick={() => sendForgot()}>
