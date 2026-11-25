@@ -4,15 +4,15 @@ import { api, useApi } from "../api";
 import { useAuth } from "../auth";
 import { usd, useToast } from "../ui";
 
-function loadRazorpay() {
-  if (window.Razorpay) return Promise.resolve();
+function loadCheckout(name, src) {
+  if (window[name]) return Promise.resolve();
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.src = src;
     script.onload = resolve;
     script.onerror = () => {
       script.remove();
-      reject(new Error("Could not load Razorpay Checkout"));
+      reject(new Error("Could not load " + name + " Checkout"));
     };
     document.head.appendChild(script);
   });
@@ -25,9 +25,11 @@ export default function Fee() {
   const nav = useNavigate();
   const toast = useToast();
   const razorpay = useApi("/payments/razorpay-registration/config");
+  const cashfree = useApi("/payments/cashfree-registration-test/config");
   const cfg = useApi("/payments/config");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [testOrder, setTestOrder] = useState("");
 
   if (!auth) return <Navigate to="/login" replace />;
   if (auth.feePaid !== false) return <Navigate to={HOME[auth.role]} replace />;
@@ -47,7 +49,7 @@ export default function Fee() {
     setBusy(true);
     setErr("");
     try {
-      await loadRazorpay();
+      await loadCheckout("Razorpay", "https://checkout.razorpay.com/v1/checkout.js");
       const order = await api("/payments/razorpay-registration/order", { method: "POST" });
       const checkout = new window.Razorpay({
         key: order.keyId,
@@ -80,6 +82,31 @@ export default function Fee() {
     }
   }
 
+  async function runCashfreeTest(start) {
+    setBusy(true);
+    setErr("");
+    try {
+      let orderId = testOrder;
+      if (start) {
+        await loadCheckout("Cashfree", "https://sdk.cashfree.com/js/v3/cashfree.js");
+        const order = await api("/payments/cashfree-registration-test/orders", { method: "POST" });
+        orderId = order.orderId;
+        setTestOrder(orderId);
+        const result = await window.Cashfree({ mode: "sandbox" }).checkout({
+          paymentSessionId: order.paymentSessionId,
+          redirectTarget: "_modal",
+        });
+        if (result?.error) throw new Error(result.error.message || "Cashfree checkout incomplete");
+      }
+      const result = await api("/payments/cashfree-registration-test/orders/" + encodeURIComponent(orderId));
+      toast(result.paid ? "Cashfree confirmed the ₹100 sandbox payment" : "Test payment not confirmed yet");
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function checkStatus() {
     setErr("");
     try {
@@ -94,6 +121,13 @@ export default function Fee() {
       <h2>Complete your registration</h2>
       <div className="box" style={{ maxWidth: 460 }}>
         <h3>One-time registration fee</h3>
+        {cashfree.data?.enabled && (
+          <>
+            <p>Cashfree sandbox · ₹100 test payment. Your live registration stays unpaid.</p>
+            <button disabled={busy} onClick={() => runCashfreeTest(true)}>Test Cashfree checkout</button>
+            {testOrder && <button disabled={busy} onClick={() => runCashfreeTest(false)}>Verify test payment</button>}
+          </>
+        )}
         {razorpay.data?.enabled ? (
           <>
             <p className="price">₹{razorpay.data.amount / 100}</p>
