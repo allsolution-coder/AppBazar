@@ -45,6 +45,9 @@ Free plans change, so check each pricing page before you start. Render's free ba
 | `BREVO_API_KEY`, `MAIL_FROM` | From step 3 |
 | `CORS_ORIGIN`, `FRONTEND_URL` | The frontend address from step 5 (set after step 5, then redeploy) |
 | `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET` | Required to enable PayPal checkout |
+| `CASHFREE_CLIENT_ID`, `CASHFREE_CLIENT_SECRET` | Cashfree credentials for developer registration fees |
+| `CASHFREE_MODE` | Use `production` with approved live credentials for hosted payments; sandbox checkout is limited to localhost |
+| `CASHFREE_API_VERSION` | Optional; defaults to `2025-01-01` |
 | `SEED_DEMO_DATA` | Leave false in production |
 
 4. Deploy. When it is live, open `https://YOUR-BACKEND.onrender.com/api/products`. You should see JSON.
@@ -60,4 +63,5 @@ Open the site, enter an email, and you should get a login code by email. On a fr
 
 ## Notes
 - Anyone who gets your `JWT_SECRET`, database password, or Brevo/Supabase/PayPal secrets can act as your site. Keep them only in Render's environment settings, never in the repo.
-- Before real money, use PayPal live credentials (`PAYPAL_BASE=https://api-m.paypal.com`) and add webhooks. Check PayPal's rules for your country first.
+- Product-cart payments still use PayPal. Developer registration fees use Cashfree in INR; hosted accounts unlock only in `production` mode after Cashfree confirms the matching amount. Keep sandbox checkout local.
+- Do not set `CASHFREE_MODE=production` until Cashfree has activated live payments for your merchant account and you have entered its live credentials in Render.

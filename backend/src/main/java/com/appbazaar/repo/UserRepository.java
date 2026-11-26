@@ -15,4 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmailForUpdate(@Param("email") String email);
 
     long countByFeePaidAtNotNull();
+
+    @Query("select coalesce(sum(u.feeAmountInr), 0L) from User u")
+    long sumFeeAmountInr();
 }

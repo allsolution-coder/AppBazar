@@ -15,11 +15,15 @@ public final class Dto {
     public record VerifyReq(@Email @NotBlank String email, @NotBlank @Size(min = 6, max = 6) String code, String role) {}
     public record SignupReq(@Email @NotBlank String email,
                             @Size(min = 8, max = 72, message = "Password must be 8 to 72 characters") String password,
-                            String role) {}
+                            String role, String accountType) {}
     public record ResetReq(@Email @NotBlank String email, @NotBlank @Size(min = 6, max = 6) String code,
                            @Size(min = 8, max = 72, message = "Password must be 8 to 72 characters") String password) {}
     public record LoginReq(@NotBlank String email, @NotBlank String password) {}
-    public record AuthRes(String token, String name, String role, boolean feePaid) {}
+    public record AuthRes(String token, String name, String role, boolean feePaid, String accountType) {
+        public AuthRes(String token, String name, String role, boolean feePaid) {
+            this(token, name, role, feePaid, null);
+        }
+    }
 
     public record ProductRes(Long id, String name, String category, int price, String description,
                              double rating, int reviewCount, String status, String seller,
@@ -52,7 +56,8 @@ public final class Dto {
     }
     public record ConfirmReq(@NotBlank String paymentId) {}
     public record ConfirmRes(String kind, AuthRes auth, OrderRes order) {}
-    public record AccountRes(String name, String email, String role, boolean feePaid, Instant feePaidAt,
+    public record AccountRes(String name, String email, String role, String accountType,
+                             boolean feePaid, Instant feePaidAt, Integer feeAmountInr,
                              long orders, long listings) {}
     public record NameReq(@NotBlank @Size(max = 60) String name) {}
     public record PasswordReq(@NotBlank String currentPassword,

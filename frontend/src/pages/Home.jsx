@@ -14,7 +14,7 @@ export default function Home() {
     <>
       <section className="hero">
         <div>
-          <h1>Apps, templates, college projects and AI tools. All in one bazaar.</h1>
+          <h1>Apps, SaaS products, templates, college projects and AI tools. All in one bazaar.</h1>
           <p>Developers, studios and students list what they built. Buyers pick it up and ship this week.</p>
           <p><Link className="btn" to="/browse">Browse products</Link> <Link className="btn ghost" to="/seller">Start selling</Link></p>
         </div>

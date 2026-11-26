@@ -6,17 +6,14 @@ import com.appbazaar.model.*;
 import com.appbazaar.payment.PayPalService;
 import com.appbazaar.payment.PayPalService.Item;
 import com.appbazaar.repo.*;
-import com.appbazaar.security.JwtService;
 import com.appbazaar.web.Dto.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -33,23 +30,15 @@ public class PaymentController {
     private final UserRepository users;
     private final ProductRepository products;
     private final OrderRepository orders;
-    private final JwtService jwt;
-    private final int registrationFee;
 
     public PaymentController(PayPalService paypal, UserRepository users, ProductRepository products,
-                             OrderRepository orders, JwtService jwt,
-                             @Value("${app.registration-fee}") int registrationFee) {
+                             OrderRepository orders) {
         this.paypal = paypal; this.users = users; this.products = products;
-        this.orders = orders; this.jwt = jwt;
-        this.registrationFee = registrationFee;
+        this.orders = orders;
     }
 
     private void requirePayPal() {
         if (!paypal.enabled()) throw new ResponseStatusException(BAD_REQUEST, "Online payments are not set up");
-    }
-
-    private AuthRes paidAuth(User u) {
-        return new AuthRes(jwt.generate(u, true), u.getName(), u.getRole().name(), true);
     }
 
     private static long cents(String value) {
@@ -58,18 +47,12 @@ public class PaymentController {
 
     @GetMapping("/config")
     public Map<String, Object> config() {
-        return Map.of("online", paypal.enabled(), "provider", "PayPal", "fee", registrationFee);
+        return Map.of("online", paypal.enabled(), "provider", "PayPal");
     }
 
     @PostMapping("/fee-session")
     public Map<String, String> feeSession(Authentication auth) {
-        requirePayPal();
-        User u = users.findByEmail(auth.getName()).orElseThrow();
-        if (!Boolean.FALSE.equals(u.getFeePaid()))
-            throw new ResponseStatusException(CONFLICT, "Registration fee is already paid");
-        String url = paypal.createOrder(List.of(new Item("AppBazaar registration fee", registrationFee * 100L)),
-                "fee|" + u.getEmail());
-        return Map.of("url", url);
+        throw new ResponseStatusException(CONFLICT, "Registration fees are handled in INR through Cashfree");
     }
 
     @PostMapping("/order-session")
@@ -111,15 +94,7 @@ public class PaymentController {
         User u = users.findByEmail(auth.getName()).orElseThrow();
 
         if ("fee".equals(parts[0])) {
-            if (paid != registrationFee * 100L)
-                throw new ResponseStatusException(CONFLICT, "Payment amount does not match the registration fee");
-            if (Boolean.FALSE.equals(u.getFeePaid())) {
-                u.setFeePaid(true);
-                u.setFeePaidAt(Instant.now());
-                u.setFeePaymentRef(ref);
-                users.save(u);
-            }
-            return new ConfirmRes("fee", paidAuth(u), null);
+            throw new ResponseStatusException(CONFLICT, "PayPal registration payments are no longer accepted");
         }
         if ("order".equals(parts[0]) && parts.length > 2) {
             Orders existing = orders.findByPaymentRef(ref).orElse(null);

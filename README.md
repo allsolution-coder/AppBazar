@@ -1,6 +1,6 @@
 # AppBazaar
 
-A digital marketplace where developers and studios sell software, apps, website templates, AI tools and services, and buyers pay and download what they bought.
+A digital marketplace where developers and studios sell software, apps, SaaS products, website templates, AI tools and services, and buyers pay and download what they bought.
 
 Built with **Spring Boot 3 (Java 21)**, **PostgreSQL** and **React (Vite)**.
 
@@ -8,10 +8,10 @@ Built with **Spring Boot 3 (Java 21)**, **PostgreSQL** and **React (Vite)**.
 
 ## Features
 
-- **Registration fee.** Every new buyer and seller pays a one-time $5 fee before the account is active. The admin panel shows the fee income.
+- **Registration fee.** Buyers are free. App/software sellers and game developers pay ₹199 once; SaaS developers pay ₹299 once. The admin panel reports confirmed INR registration fees.
 - **Email and password login.** Sign up with an email and a password, then confirm the email once with a 6-digit code (it also lets you reset a forgotten password). Codes are stored hashed, expire in 10 minutes, and allow 5 tries. Passwords are hashed with BCrypt and wrong passwords are rate limited.
 - **Three roles.** Buyer, seller and admin, with JWT login and role-based access on every endpoint.
-- **Seller uploads.** A seller lists a product together with the file buyers will receive (zip, rar, 7z, tar, gz, pdf, apk, jar, txt, md, up to 50 MB).
+- **Seller uploads.** A seller lists a product together with the file buyers will receive (zip, rar, 7z, tar, gz, pdf, apk, jar, txt, md, up to 50 MB); SaaS products have a dedicated category.
 - **Admin approval.** New listings wait in an approval queue. The admin can download the file to review it, then approve or reject. Only approved products are public.
 - **Cart and checkout.** Prices are always read from the database, never from the browser. Payments use PayPal.
 - **Protected downloads.** Only a buyer who paid, the product's seller, or an admin can download a file. Files are stored under random names.
@@ -87,7 +87,9 @@ Set these as environment variables.
 | `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET` | empty | PayPal app credentials. Both are required to enable PayPal |
 | `PAYPAL_BASE` | PayPal sandbox | Set to `https://api-m.paypal.com` for live payments |
 | `FRONTEND_URL` | `http://localhost:5173` | Where PayPal sends the buyer back |
-| `REGISTRATION_FEE` | `5` | Registration fee in whole US dollars |
+| `CASHFREE_CLIENT_ID`, `CASHFREE_CLIENT_SECRET` | empty | Cashfree payment credentials for registration fees |
+| `CASHFREE_MODE` | `sandbox` | Use `sandbox` for local testing; set `production` with live Cashfree credentials for live INR payments |
+| `CASHFREE_API_VERSION` | `2025-01-01` | Cashfree Payments API version |
 | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` | empty | SMTP server that sends login codes. Empty means the code is printed in the backend console (development only) |
 | `MAIL_FROM` | `no-reply@appbazaar.local` | Sender address (use your Gmail address with Gmail) |
 | `CORS_ORIGIN` | `http://localhost:5173` | Allowed frontend origin |
@@ -95,13 +97,17 @@ Set these as environment variables.
 | `S3_BUCKET`, `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | empty | S3-compatible cloud storage for product files (needed on free hosting) |
 | `BREVO_API_KEY` | empty | Sends login emails over HTTPS (needed on hosts that block SMTP) |
 
-## Online payments with PayPal
+## Registration payments with Cashfree
+
+Registration fees are ₹199 for app/software sellers and game developers, ₹299 for SaaS developers, and free for buyers. The amount is selected and checked by the backend, not accepted from the browser. Cashfree sandbox is enabled only for a localhost frontend so test payments cannot unlock accounts on the hosted production site. For live registration payments, use approved live Cashfree credentials and set `CASHFREE_MODE=production` on the backend.
+
+## Marketplace checkout with PayPal
 
 Payments are unavailable until PayPal is configured. To test PayPal:
 
 1. Go to developer.paypal.com, log in with a PayPal account, open **Apps & Credentials**, switch to **Sandbox**, and create an app. Copy its **Client ID** and **Secret**.
 2. Start the backend with `PAYPAL_CLIENT_ID` and `PAYPAL_SECRET` set. `start-backend.ps1` asks for them.
-3. The $5 registration fee and cart checkout now open the PayPal payment page. Pay with a **sandbox personal account** (Developer dashboard, Testing tools, Sandbox accounts).
+3. Product cart checkout opens the PayPal payment page. Pay with a **sandbox personal account** (Developer dashboard, Testing tools, Sandbox accounts). Registration checkout is Cashfree in INR.
 
 The server only counts a payment after asking PayPal that the order is completed, for the right amount and the right account, and it rebuilds the amount from its own product prices. PayPal sends the buyer back to `FRONTEND_URL` (default `http://localhost:5173`). For live payments set `PAYPAL_BASE=https://api-m.paypal.com` with live credentials, and add PayPal webhooks so orders are created even if the buyer closes the tab.
 

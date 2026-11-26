@@ -5,6 +5,12 @@ import { useAuth } from "../auth";
 import { Loading, useToast } from "../ui";
 
 const ROLE = { BUYER: "Buyer", SELLER: "Seller", ADMIN: "Admin" };
+const ACCOUNT = {
+  BUYER: "Buyer",
+  APP_SOFTWARE_SELLER: "App / Software Seller",
+  GAME_DEVELOPER: "Game Developer",
+  SAAS_DEVELOPER: "SaaS Developer",
+};
 const HOME = { BUYER: "/buyer", SELLER: "/seller", ADMIN: "/admin" };
 
 export default function Account() {
@@ -54,8 +60,8 @@ export default function Account() {
               <tbody>
                 {row("Name", data.name)}
                 {row("Email", data.email)}
-                {row("Account type", ROLE[data.role] || data.role)}
-                {row("Registration fee", data.role === "ADMIN" ? "Not needed" : data.feePaid ? (data.feePaidAt ? `Paid on ${new Date(data.feePaidAt).toLocaleDateString()}` : "Paid") : "Not paid yet")}
+                {row("Account type", ACCOUNT[data.accountType] || ROLE[data.role] || data.role)}
+                {row("Registration fee", data.role === "ADMIN" || data.accountType === "BUYER" ? "Free" : data.feePaid ? `${data.feeAmountInr ? `₹${data.feeAmountInr} paid` : "Paid"}${data.feePaidAt ? ` on ${new Date(data.feePaidAt).toLocaleDateString()}` : ""}` : "Not paid yet")}
                 {data.role !== "ADMIN" && row("Orders", data.orders)}
                 {data.role === "SELLER" && row("Your listings", data.listings)}
               </tbody>

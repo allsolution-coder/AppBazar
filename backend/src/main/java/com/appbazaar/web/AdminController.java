@@ -18,14 +18,12 @@ public class AdminController {
     private final OrderRepository orders;
     private final FileStorage storage;
     private final UserRepository users;
-    private final int registrationFee;
     private final double commission;
 
     public AdminController(ProductRepository products, OrderRepository orders, FileStorage storage, UserRepository users,
-                           @Value("${app.registration-fee}") int registrationFee,
                            @Value("${app.commission}") double commission) {
         this.products = products; this.orders = orders; this.storage = storage; this.users = users;
-        this.registrationFee = registrationFee; this.commission = commission;
+        this.commission = commission;
     }
 
     @GetMapping("/stats")
@@ -33,7 +31,7 @@ public class AdminController {
         long revenue = orders.totalRevenue();
         return new Stats(products.countByStatus(Status.LIVE), products.countByStatus(Status.PENDING),
                 orders.count(), revenue, Math.round(revenue * commission),
-                users.countByFeePaidAtNotNull() * (long) registrationFee);
+                users.sumFeeAmountInr());
     }
 
     @GetMapping("/pending")

@@ -13,7 +13,7 @@ export default function Login() {
   const [mode, setMode] = useState("login"); // login, signup, code (verify sign-up), forgot, reset
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("BUYER");
+  const [accountType, setAccountType] = useState("BUYER");
   const [code, setCode] = useState("");
   const [devMode, setDevMode] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -39,7 +39,7 @@ export default function Login() {
   const sendSignup = (e) => {
     if (e) e.preventDefault();
     return run(async () => {
-      const r = await api("/auth/signup", { method: "POST", body: { email, password, role } });
+      const r = await api("/auth/signup", { method: "POST", body: { email, password, accountType } });
       setDevMode(r.devMode); setCode(""); setMode("code"); setCooldown(60);
     });
   };
@@ -63,14 +63,16 @@ export default function Login() {
   if (mode === "signup") return (
     <section>
       <h2>Create your account</h2>
-      <p className="tag" style={{ maxWidth: "52ch" }}>We email you a code once to confirm your address. After that you log in with your password. New accounts pay a one-time $5 registration fee.</p>
+      <p className="tag" style={{ maxWidth: "60ch" }}>Confirm your email once, then use your password to log in. Buyers are free. Developer accounts have a one-time registration fee; there is no recurring SaaS fee in this plan.</p>
       <form onSubmit={sendSignup}>
         <label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required autoFocus /></label>
         <label>Password (8 or more characters)<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} maxLength={72} autoComplete="new-password" required /></label>
-        <label>I want to
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="BUYER">Buy products</option>
-            <option value="SELLER">Sell products</option>
+        <label>Account type
+          <select value={accountType} onChange={(e) => setAccountType(e.target.value)}>
+            <option value="BUYER">Buyer — Free</option>
+            <option value="APP_SOFTWARE_SELLER">App / Software Seller — ₹199 one-time</option>
+            <option value="GAME_DEVELOPER">Game Developer — ₹199 one-time</option>
+            <option value="SAAS_DEVELOPER">SaaS Developer — ₹299 one-time</option>
           </select>
         </label>
         {errBox}

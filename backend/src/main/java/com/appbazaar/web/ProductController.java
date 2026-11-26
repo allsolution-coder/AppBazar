@@ -18,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/products")
 public class ProductController {
     private static final Set<String> CATEGORIES =
-            Set.of("Software", "Apps", "Website templates", "AI tools", "Services",
+            Set.of("Software", "Apps", "SaaS products", "Website templates", "AI tools", "Services",
                     "College projects", "Mini projects", "Game source code", "Games");
 
     private final ProductRepository products;

@@ -50,8 +50,8 @@ public class EmailLoginController {
         String email = norm(r.email());
         if (users.findByEmail(email).isPresent())
             throw new ResponseStatusException(CONFLICT, "This email is already registered. Log in, or use Forgot password");
-        String role = "SELLER".equalsIgnoreCase(r.role()) ? "SELLER" : "BUYER"; // admins are never created here
-        issue(email, "signup", encoder.encode(r.password()), role);
+        String accountType = normalizeAccountType(r.accountType(), r.role());
+        issue(email, "signup", encoder.encode(r.password()), accountType);
         return Map.of("sent", true, "devMode", !mail.configured());
     }
 
@@ -68,8 +68,11 @@ public class EmailLoginController {
         u.setName(name.length() > 40 ? name.substring(0, 40) : name);
         u.setEmail(email);
         u.setPasswordHash(lc.getPendingPasswordHash());
-        u.setRole("SELLER".equals(lc.getPendingRole()) ? Role.SELLER : Role.BUYER);
-        u.setFeePaid(false); // new accounts pay the registration fee
+        String accountType = normalizeAccountType(lc.getPendingRole(), null);
+        u.setAccountType(accountType);
+        u.setRole("BUYER".equals(accountType) ? Role.BUYER : Role.SELLER);
+        // Buyers are free. Developer accounts remain restricted until Cashfree confirms the exact INR fee.
+        u.setFeePaid("BUYER".equals(accountType));
         users.save(u);
         codes.delete(lc);
         return auth(u);
@@ -99,7 +102,22 @@ public class EmailLoginController {
 
     private AuthRes auth(User u) {
         boolean paid = !Boolean.FALSE.equals(u.getFeePaid());
-        return new AuthRes(jwt.generate(u, paid), u.getName(), u.getRole().name(), paid);
+        return new AuthRes(jwt.generate(u, paid), u.getName(), u.getRole().name(), paid, effectiveAccountType(u));
+    }
+
+    private static String normalizeAccountType(String requested, String legacyRole) {
+        String type = requested == null || requested.isBlank() ? legacyRole : requested;
+        if (type == null || type.isBlank()) type = "BUYER";
+        type = type.trim().toUpperCase();
+        if ("SELLER".equals(type)) type = "APP_SOFTWARE_SELLER";
+        if (!java.util.Set.of("BUYER", "APP_SOFTWARE_SELLER", "GAME_DEVELOPER", "SAAS_DEVELOPER").contains(type))
+            throw new ResponseStatusException(BAD_REQUEST, "Choose Buyer, App / Software Seller, Game Developer, or SaaS Developer");
+        return type;
+    }
+
+    static String effectiveAccountType(User user) {
+        if (user.getAccountType() != null && !user.getAccountType().isBlank()) return user.getAccountType();
+        return user.getRole() == Role.BUYER ? "BUYER" : "APP_SOFTWARE_SELLER";
     }
 
     private void issue(String email, String purpose, String pendingHash, String pendingRole) {

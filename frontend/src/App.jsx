@@ -49,7 +49,7 @@ export default function App() {
               <NavLink to="/about">About</NavLink>
               <NavLink to="/contact">Contact</NavLink>
               {auth && (auth.feePaid === false
-                ? <NavLink to="/fee">Pay $5 fee</NavLink>
+                ? <NavLink to="/fee">Complete registration</NavLink>
                 : <NavLink to={HOME[auth.role]}>{auth.role === "ADMIN" ? "Admin" : auth.role === "SELLER" ? "Seller" : "My orders"}</NavLink>)}
               {auth && auth.feePaid !== false && <NavLink to="/account">Account</NavLink>}
             </div>

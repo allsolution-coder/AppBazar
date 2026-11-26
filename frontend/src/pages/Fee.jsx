@@ -1,105 +1,69 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { api, useApi } from "../api";
 import { useAuth } from "../auth";
-import { usd, useToast } from "../ui";
+import { useToast } from "../ui";
 
-function loadCheckout(name, src) {
-  if (window[name]) return Promise.resolve();
+function loadCashfree() {
+  if (window.Cashfree) return Promise.resolve();
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = src;
+    script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
     script.onload = resolve;
-    script.onerror = () => {
-      script.remove();
-      reject(new Error("Could not load " + name + " Checkout"));
-    };
+    script.onerror = () => { script.remove(); reject(new Error("Could not load Cashfree Checkout")); };
     document.head.appendChild(script);
   });
 }
 
 const HOME = { BUYER: "/buyer", SELLER: "/seller", ADMIN: "/admin" };
+const ACCOUNT_LABEL = {
+  APP_SOFTWARE_SELLER: "App / Software Seller",
+  GAME_DEVELOPER: "Game Developer",
+  SAAS_DEVELOPER: "SaaS Developer",
+};
 
 export default function Fee() {
   const { auth, login } = useAuth();
   const nav = useNavigate();
   const toast = useToast();
-  const razorpay = useApi("/payments/razorpay-registration/config");
-  const cashfree = useApi("/payments/cashfree-registration-test/config");
-  const cfg = useApi("/payments/config");
+  const cfg = useApi("/payments/cashfree-registration/config");
+  const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [testOrder, setTestOrder] = useState("");
+  const [currentOrderId, setCurrentOrderId] = useState("");
+
+  async function verify(orderId) {
+    const res = await api(`/payments/cashfree-registration/orders/${encodeURIComponent(orderId)}/verify`, { method: "POST" });
+    login(res);
+    toast("Registration complete");
+    nav(HOME[res.role] || "/seller", { replace: true });
+  }
+
+  useEffect(() => {
+    const orderId = new URLSearchParams(location.search).get("cashfree_order_id");
+    if (!orderId || !auth) return;
+    setBusy(true);
+    verify(orderId).catch((e) => setErr(e.message)).finally(() => setBusy(false));
+    // Only verify the order id returned by Cashfree; the server checks its user, amount and paid status.
+  }, []);
 
   if (!auth) return <Navigate to="/login" replace />;
   if (auth.feePaid !== false) return <Navigate to={HOME[auth.role]} replace />;
 
-  const amount = cfg.data?.fee;
-  const paypalOn = !!(cfg.data && cfg.data.online);
-
   async function pay() {
     setBusy(true); setErr("");
     try {
-      const { url } = await api("/payments/fee-session", { method: "POST" });
-      location.assign(url);
-    } catch (e) { setErr(e.message); } finally { setBusy(false); }
-  }
-
-  async function payRazorpay() {
-    setBusy(true);
-    setErr("");
-    try {
-      await loadCheckout("Razorpay", "https://checkout.razorpay.com/v1/checkout.js");
-      const order = await api("/payments/razorpay-registration/order", { method: "POST" });
-      const checkout = new window.Razorpay({
-        key: order.keyId,
-        order_id: order.orderId,
-        amount: order.amount,
-        currency: order.currency,
-        name: "AppBazaar Test",
-        description: "Registration fee",
-        modal: { ondismiss: () => setBusy(false) },
-        handler: async (payment) => {
-          try {
-            const res = await api("/payments/razorpay-registration/verify", {
-              method: "POST",
-              body: { orderId: order.orderId, paymentId: payment.razorpay_payment_id, signature: payment.razorpay_signature },
-            });
-            login(res);
-            toast("Registration complete");
-            nav(HOME[res.role]);
-          } catch (e) {
-            setErr(e.message);
-          } finally {
-            setBusy(false);
-          }
-        },
+      await loadCashfree();
+      const order = await api("/payments/cashfree-registration/orders", {
+        method: "POST", body: { phone: phone.replace(/\D/g, "") },
       });
-      checkout.open();
-    } catch (e) {
-      setErr(e.message);
-      setBusy(false);
-    }
-  }
-
-  async function runCashfreeTest(start) {
-    setBusy(true);
-    setErr("");
-    try {
-      let orderId = testOrder;
-      if (start) {
-        await loadCheckout("Cashfree", "https://sdk.cashfree.com/js/v3/cashfree.js");
-        const order = await api("/payments/cashfree-registration-test/orders", { method: "POST" });
-        orderId = order.orderId;
-        setTestOrder(orderId);
-        const result = await window.Cashfree({ mode: "sandbox" }).checkout({
-          paymentSessionId: order.paymentSessionId,
-          redirectTarget: "_modal",
-        });
-        if (result?.error) throw new Error(result.error.message || "Cashfree checkout incomplete");
-      }
-      const result = await api("/payments/cashfree-registration-test/orders/" + encodeURIComponent(orderId));
-      toast(result.paid ? "Cashfree confirmed the ₹100 sandbox payment" : "Test payment not confirmed yet");
+      setCurrentOrderId(order.orderId);
+      const result = await window.Cashfree({ mode: cfg.data?.mode || "sandbox" }).checkout({
+        paymentSessionId: order.paymentSessionId,
+        redirectTarget: "_modal",
+      });
+      if (result?.error) throw new Error(result.error.message || "Cashfree checkout was not completed");
+      await verify(order.orderId);
     } catch (e) {
       setErr(e.message);
     } finally {
@@ -110,37 +74,36 @@ export default function Fee() {
   async function checkStatus() {
     setErr("");
     try {
+      if (currentOrderId) return await verify(currentOrderId);
       const res = await api("/auth/refresh", { method: "POST" });
       if (res.feePaid) { login(res); toast("Registration complete"); nav(HOME[res.role]); }
-      else toast("Not approved yet. Please check again in a while.");
+      else toast("Payment is not confirmed yet. Check again shortly.");
     } catch (e) { setErr(e.message); }
   }
+
+  const fee = cfg.data?.amount;
+  const type = cfg.data?.accountType || auth.accountType;
 
   return (
     <section>
       <h2>Complete your registration</h2>
       <div className="box" style={{ maxWidth: 460 }}>
         <h3>One-time registration fee</h3>
-        {cashfree.data?.enabled && (
+        <p>{ACCOUNT_LABEL[type] || "Developer account"}</p>
+        {fee != null && <p className="price">₹{fee}</p>}
+        {cfg.data?.enabled ? (
           <>
-            <p>Cashfree sandbox · ₹100 test payment. Your live registration stays unpaid.</p>
-            <button disabled={busy} onClick={() => runCashfreeTest(true)}>Test Cashfree checkout</button>
-            {testOrder && <button disabled={busy} onClick={() => runCashfreeTest(false)}>Verify test payment</button>}
+            <label>Mobile number
+              <input value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9+ -]/g, ""))}
+                inputMode="tel" autoComplete="tel" placeholder="10-digit mobile number" required />
+            </label>
+            <button disabled={busy || phone.replace(/\D/g, "").length < 10} onClick={pay}>
+              {busy ? "Opening secure checkout…" : `Pay ₹${fee} with Cashfree`}
+            </button>
           </>
-        )}
-        {razorpay.data?.enabled ? (
-          <>
-            <p className="price">₹{razorpay.data.amount / 100}</p>
-            <button disabled={busy} onClick={payRazorpay}>{busy ? "Processing…" : "Pay with Razorpay (Test Mode)"}</button>
-          </>
-        ) : paypalOn ? (
-          <>
-            <p className="price">{usd(amount)}</p>
-            <button disabled={busy} onClick={pay}>{busy ? "Processing…" : "Pay with PayPal"}</button>
-          </>
-        ) : <p>{cfg.error || (cfg.data ? "Registration payments are currently unavailable." : "Checking PayPal availability…")}</p>}
+        ) : <p>{cfg.error || (cfg.data ? "Cashfree is not configured for this environment." : "Checking Cashfree availability…")}</p>}
         {err && <p className="err">{err}</p>}
-        <p><button className="ghost" onClick={checkStatus}>Check an earlier payment</button></p>
+        <p><button className="ghost" disabled={busy} onClick={checkStatus}>Check payment status</button></p>
       </div>
     </section>
   );

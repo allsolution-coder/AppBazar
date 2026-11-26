@@ -34,8 +34,10 @@ public class AccountController {
     }
 
     private AccountRes view(User u) {
-        return new AccountRes(u.getName(), u.getEmail(), u.getRole().name(),
-                !Boolean.FALSE.equals(u.getFeePaid()), u.getFeePaidAt(),
+        String type = u.getAccountType();
+        if (type == null || type.isBlank()) type = u.getRole() == Role.BUYER ? "BUYER" : "APP_SOFTWARE_SELLER";
+        return new AccountRes(u.getName(), u.getEmail(), u.getRole().name(), type,
+                !Boolean.FALSE.equals(u.getFeePaid()), u.getFeePaidAt(), u.getFeeAmountInr(),
                 orders.countByBuyer(u), products.countBySeller(u));
     }
 

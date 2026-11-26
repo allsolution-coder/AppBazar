@@ -16,7 +16,10 @@ public class User {
     private String passwordHash;
     @Enumerated(EnumType.STRING)
     private Role role;
+    /** BUYER, APP_SOFTWARE_SELLER, GAME_DEVELOPER, or SAAS_DEVELOPER. Null on legacy rows. */
+    private String accountType;
     private Boolean feePaid;      // null means an account created before the fee existed (treated as paid)
     private Instant feePaidAt;
     private String feePaymentRef;
+    private Integer feeAmountInr;
 }

@@ -1,6 +1,7 @@
 export const COL = {
   Software: "#4f46e5",
   Apps: "#0d9488",
+  "SaaS products": "#7c3aed",
   "Website templates": "#ea580c",
   "AI tools": "#9333ea",
   Services: "#e11d48",

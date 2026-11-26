@@ -117,7 +117,7 @@ export function Admin() {
           <div className="box"><h3>{s.pending}</h3>Awaiting approval</div>
           <div className="box"><h3>{s.orders}</h3>Orders</div>
           <div className="box"><h3>{usd(s.commission)}</h3>Commission earned</div>
-          <div className="box"><h3>{usd(s.feeIncome)}</h3>Registration fees</div>
+          <div className="box"><h3>{new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(s.feeIncome)}</h3>Registration fees</div>
         </div>
       )}
       <h2 style={{ marginTop: 28 }}>Approval queue</h2>
